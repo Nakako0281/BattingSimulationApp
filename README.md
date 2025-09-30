@@ -1,0 +1,2 @@
+# BattingSimulationApp
+野球の打撃成績をもとに試合のシミュレーションを行う
