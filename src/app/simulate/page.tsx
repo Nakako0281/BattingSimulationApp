@@ -14,6 +14,8 @@ export default function SimulatePage() {
   const [isFetchingTeams, setIsFetchingTeams] = useState(true);
   const [error, setError] = useState("");
   const [gameResult, setGameResult] = useState<GameResult | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
     fetchTeams();
@@ -51,6 +53,7 @@ export default function SimulatePage() {
     setError("");
     setIsLoading(true);
     setGameResult(null);
+    setSaveSuccess(false);
 
     try {
       const response = await fetch("/api/simulate", {
@@ -77,6 +80,42 @@ export default function SimulatePage() {
       setError("シミュレーションに失敗しました");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSaveResult = async () => {
+    if (!gameResult) return;
+
+    setIsSaving(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/simulate/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "single_game",
+          teamId: selectedTeamId,
+          result: gameResult,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        setError(result.error || "保存に失敗しました");
+        return;
+      }
+
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (err) {
+      console.error("Save error:", err);
+      setError("保存に失敗しました");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -168,7 +207,21 @@ export default function SimulatePage() {
           <div className="space-y-6">
             {/* スコアボード */}
             <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">試合結果</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-bold text-gray-900">試合結果</h2>
+                <div className="flex gap-2">
+                  {saveSuccess && (
+                    <span className="text-green-600 text-sm">保存しました</span>
+                  )}
+                  <button
+                    onClick={handleSaveResult}
+                    disabled={isSaving}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                  >
+                    {isSaving ? "保存中..." : "結果を保存"}
+                  </button>
+                </div>
+              </div>
               <div className="text-center mb-6">
                 <div className="text-4xl font-bold text-blue-600 mb-2">
                   {gameResult.totalRuns} 得点

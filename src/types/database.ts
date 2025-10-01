@@ -97,6 +97,26 @@ export interface PlayerWithTeam extends Player {
   team: Team;
 }
 
+export interface SimulationResult {
+  id: string;
+  user_id: string;
+  team_id: string;
+  simulation_type: "single_game" | "season";
+  total_runs: number | null;
+  total_hits: number | null;
+  total_errors: number | null;
+  innings_played: number | null;
+  games_played: number | null;
+  wins: number | null;
+  losses: number | null;
+  result_data: any; // JSONB - can be GameResult or SeasonResult
+  created_at: string;
+}
+
+export interface SimulationResultWithTeam extends SimulationResult {
+  team: Team;
+}
+
 // ============================================
 // Calculated Statistics Types
 // ============================================

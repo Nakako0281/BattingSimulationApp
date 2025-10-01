@@ -17,6 +17,7 @@ export default function Header() {
     { href: "/dashboard", label: "ダッシュボード" },
     { href: "/teams", label: "チーム管理" },
     { href: "/simulate", label: "シミュレーション" },
+    { href: "/history", label: "履歴" },
   ];
 
   return (
