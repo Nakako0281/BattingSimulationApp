@@ -40,6 +40,11 @@ body {
     color: #9ca3af !important; /* gray-400 */
   }
 
+  /* Force label text to be dark and readable */
+  label {
+    color: #111827 !important; /* gray-900 */
+  }
+
   /* Enhanced focus indicators */
   *:focus {
     outline: none;
