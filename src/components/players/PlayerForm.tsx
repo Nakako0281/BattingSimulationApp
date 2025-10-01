@@ -1,0 +1,320 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import type { Player } from "@/types";
+
+interface PlayerFormProps {
+  teamId: string;
+  player?: Player;
+  mode: "create" | "edit";
+  existingBattingOrders?: number[];
+}
+
+export default function PlayerForm({
+  teamId,
+  player,
+  mode,
+  existingBattingOrders = [],
+}: PlayerFormProps) {
+  const router = useRouter();
+  const [formData, setFormData] = useState({
+    name: player?.name || "",
+    batting_order: player?.batting_order || 1,
+    singles: player?.singles || 0,
+    doubles: player?.doubles || 0,
+    triples: player?.triples || 0,
+    home_runs: player?.home_runs || 0,
+    walks: player?.walks || 0,
+    strikeouts: player?.strikeouts || 0,
+    groundouts: player?.groundouts || 0,
+    flyouts: player?.flyouts || 0,
+    at_bats: player?.at_bats || 0,
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "name" ? value : Number(value),
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
+
+    try {
+      const url = mode === "create" ? "/api/players" : `/api/players/${player?.id}`;
+      const method = mode === "create" ? "POST" : "PATCH";
+
+      const payload =
+        mode === "create"
+          ? { team_id: teamId, ...formData }
+          : { team_id: teamId, ...formData };
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        setError(result.error || "保存に失敗しました");
+        return;
+      }
+
+      // 成功時、チーム詳細ページへリダイレクト
+      router.push(`/teams/${teamId}`);
+    } catch (err) {
+      console.error("Form submission error:", err);
+      setError("保存に失敗しました");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    router.push(`/teams/${teamId}`);
+  };
+
+  // 利用可能な打順を計算
+  const availableBattingOrders = Array.from({ length: 9 }, (_, i) => i + 1).filter(
+    (order) =>
+      order === player?.batting_order || !existingBattingOrders.includes(order)
+  );
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-4xl">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* 基本情報 */}
+        <div className="md:col-span-2">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">基本情報</h3>
+        </div>
+
+        <div>
+          <label htmlFor="name" className="block text-sm font-medium mb-2">
+            選手名 <span className="text-red-600">*</span>
+          </label>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            value={formData.name}
+            onChange={handleChange}
+            disabled={isLoading}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100"
+            placeholder="例: 山田太郎"
+            required
+            maxLength={100}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="batting_order" className="block text-sm font-medium mb-2">
+            打順 <span className="text-red-600">*</span>
+          </label>
+          <select
+            id="batting_order"
+            name="batting_order"
+            value={formData.batting_order}
+            onChange={handleChange}
+            disabled={isLoading}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 disabled:bg-gray-100"
+            required
+          >
+            {availableBattingOrders.map((order) => (
+              <option key={order} value={order}>
+                {order}番
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* 打撃成績 */}
+        <div className="md:col-span-2 mt-4">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">打撃成績</h3>
+        </div>
+
+        <div>
+          <label htmlFor="at_bats" className="block text-sm font-medium mb-2">
+            打数
+          </label>
+          <input
+            id="at_bats"
+            name="at_bats"
+            type="number"
+            value={formData.at_bats}
+            onChange={handleChange}
+            disabled={isLoading}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 disabled:bg-gray-100"
+            min="0"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="singles" className="block text-sm font-medium mb-2">
+            単打
+          </label>
+          <input
+            id="singles"
+            name="singles"
+            type="number"
+            value={formData.singles}
+            onChange={handleChange}
+            disabled={isLoading}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 disabled:bg-gray-100"
+            min="0"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="doubles" className="block text-sm font-medium mb-2">
+            二塁打
+          </label>
+          <input
+            id="doubles"
+            name="doubles"
+            type="number"
+            value={formData.doubles}
+            onChange={handleChange}
+            disabled={isLoading}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 disabled:bg-gray-100"
+            min="0"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="triples" className="block text-sm font-medium mb-2">
+            三塁打
+          </label>
+          <input
+            id="triples"
+            name="triples"
+            type="number"
+            value={formData.triples}
+            onChange={handleChange}
+            disabled={isLoading}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 disabled:bg-gray-100"
+            min="0"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="home_runs" className="block text-sm font-medium mb-2">
+            本塁打
+          </label>
+          <input
+            id="home_runs"
+            name="home_runs"
+            type="number"
+            value={formData.home_runs}
+            onChange={handleChange}
+            disabled={isLoading}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 disabled:bg-gray-100"
+            min="0"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="walks" className="block text-sm font-medium mb-2">
+            四球
+          </label>
+          <input
+            id="walks"
+            name="walks"
+            type="number"
+            value={formData.walks}
+            onChange={handleChange}
+            disabled={isLoading}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 disabled:bg-gray-100"
+            min="0"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="strikeouts" className="block text-sm font-medium mb-2">
+            三振
+          </label>
+          <input
+            id="strikeouts"
+            name="strikeouts"
+            type="number"
+            value={formData.strikeouts}
+            onChange={handleChange}
+            disabled={isLoading}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 disabled:bg-gray-100"
+            min="0"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="groundouts" className="block text-sm font-medium mb-2">
+            ゴロアウト
+          </label>
+          <input
+            id="groundouts"
+            name="groundouts"
+            type="number"
+            value={formData.groundouts}
+            onChange={handleChange}
+            disabled={isLoading}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 disabled:bg-gray-100"
+            min="0"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="flyouts" className="block text-sm font-medium mb-2">
+            フライアウト
+          </label>
+          <input
+            id="flyouts"
+            name="flyouts"
+            type="number"
+            value={formData.flyouts}
+            onChange={handleChange}
+            disabled={isLoading}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 disabled:bg-gray-100"
+            min="0"
+          />
+        </div>
+      </div>
+
+      <div className="flex gap-4 pt-4">
+        <button
+          type="submit"
+          disabled={isLoading || !formData.name.trim()}
+          className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+        >
+          {isLoading
+            ? "保存中..."
+            : mode === "create"
+            ? "選手を登録"
+            : "変更を保存"}
+        </button>
+        <button
+          type="button"
+          onClick={handleCancel}
+          disabled={isLoading}
+          className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+        >
+          キャンセル
+        </button>
+      </div>
+    </form>
+  );
+}
