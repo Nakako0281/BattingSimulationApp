@@ -59,9 +59,9 @@ export default function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-md">
+    <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-md" aria-label="ログインフォーム">
       {errorMessage && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded" role="alert" aria-live="polite">
           {errorMessage}
         </div>
       )}
@@ -77,13 +77,19 @@ export default function LoginForm() {
           value={formData.nickname}
           onChange={handleChange}
           disabled={isLoading}
+          required
+          aria-required="true"
+          aria-invalid={!!errors.nickname}
+          aria-describedby={errors.nickname ? "nickname-error" : undefined}
           className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder:text-gray-400 ${
             errors.nickname ? "border-red-500" : "border-gray-300"
           } ${isLoading ? "bg-gray-100 cursor-not-allowed" : ""}`}
           placeholder="your_nickname"
         />
         {errors.nickname && (
-          <p className="mt-1 text-sm text-red-600">{errors.nickname}</p>
+          <p id="nickname-error" className="mt-1 text-sm text-red-600" role="alert">
+            {errors.nickname}
+          </p>
         )}
       </div>
 
@@ -98,19 +104,26 @@ export default function LoginForm() {
           value={formData.password}
           onChange={handleChange}
           disabled={isLoading}
+          required
+          aria-required="true"
+          aria-invalid={!!errors.password}
+          aria-describedby={errors.password ? "password-error" : undefined}
           className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder:text-gray-400 ${
             errors.password ? "border-red-500" : "border-gray-300"
           } ${isLoading ? "bg-gray-100 cursor-not-allowed" : ""}`}
           placeholder="••••••••"
         />
         {errors.password && (
-          <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+          <p id="password-error" className="mt-1 text-sm text-red-600" role="alert">
+            {errors.password}
+          </p>
         )}
       </div>
 
       <button
         type="submit"
         disabled={isLoading}
+        aria-busy={isLoading}
         className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
       >
         {isLoading ? "ログイン中..." : "ログイン"}

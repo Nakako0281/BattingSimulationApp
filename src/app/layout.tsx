@@ -22,12 +22,17 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body className={inter.className}>
+        <a href="#main-content" className="skip-link">
+          メインコンテンツへスキップ
+        </a>
         <ErrorBoundary>
           <SessionProvider>
             <AuthProvider>
               <ToastProvider>
                 <Header />
-                {children}
+                <main id="main-content">
+                  {children}
+                </main>
               </ToastProvider>
             </AuthProvider>
           </SessionProvider>
