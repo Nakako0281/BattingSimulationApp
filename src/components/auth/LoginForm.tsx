@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 import { loginSchema, type LoginInput } from "@/lib/utils/validation";
 import { z } from "zod";
 
 export default function LoginForm() {
-  const router = useRouter();
+  const { login } = useAuth();
   const [formData, setFormData] = useState<LoginInput>({
     nickname: "",
     password: "",
@@ -37,21 +36,10 @@ export default function LoginForm() {
       const validatedData = loginSchema.parse(formData);
 
       // ログイン処理
-      const result = await signIn("credentials", {
-        nickname: validatedData.nickname,
-        password: validatedData.password,
-        redirect: false,
-      });
+      const result = await login(validatedData.nickname, validatedData.password);
 
-      if (result?.error) {
-        if (result.error.includes("Too many login attempts")) {
-          setErrorMessage(result.error);
-        } else {
-          setErrorMessage("ニックネームまたはパスワードが正しくありません");
-        }
-      } else if (result?.ok) {
-        router.push("/dashboard");
-        router.refresh();
+      if (!result.success) {
+        setErrorMessage(result.error || "ログインに失敗しました");
       }
     } catch (error) {
       if (error instanceof z.ZodError) {

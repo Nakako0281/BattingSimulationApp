@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 import { registerSchema, type RegisterInput } from "@/lib/utils/validation";
 import { z } from "zod";
 import PasswordStrength from "./PasswordStrength";
 
 export default function RegisterForm() {
   const router = useRouter();
+  const { register } = useAuth();
   const [formData, setFormData] = useState<RegisterInput>({
     nickname: "",
     password: "",
@@ -44,19 +46,15 @@ export default function RegisterForm() {
       // バリデーション
       const validatedData = registerSchema.parse(formData);
 
-      // 登録API呼び出し
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(validatedData),
-      });
+      // 登録処理
+      const result = await register(
+        validatedData.nickname,
+        validatedData.password,
+        validatedData.confirmPassword
+      );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setErrorMessage(data.error || "登録に失敗しました");
+      if (!result.success) {
+        setErrorMessage(result.error || "登録に失敗しました");
         return;
       }
 
