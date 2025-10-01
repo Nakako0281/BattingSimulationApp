@@ -96,7 +96,7 @@ export default function RegisterForm() {
           value={formData.nickname}
           onChange={handleChange}
           disabled={isLoading}
-          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
+          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder:text-gray-400 ${
             errors.nickname ? "border-red-500" : "border-gray-300"
           } ${isLoading ? "bg-gray-100 cursor-not-allowed" : ""}`}
           placeholder="your_nickname"
@@ -120,7 +120,7 @@ export default function RegisterForm() {
           value={formData.password}
           onChange={handleChange}
           disabled={isLoading}
-          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
+          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder:text-gray-400 ${
             errors.password ? "border-red-500" : "border-gray-300"
           } ${isLoading ? "bg-gray-100 cursor-not-allowed" : ""}`}
           placeholder="••••••••"
@@ -142,7 +142,7 @@ export default function RegisterForm() {
           value={formData.confirmPassword}
           onChange={handleChange}
           disabled={isLoading}
-          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
+          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 placeholder:text-gray-400 ${
             errors.confirmPassword ? "border-red-500" : "border-gray-300"
           } ${isLoading ? "bg-gray-100 cursor-not-allowed" : ""}`}
           placeholder="••••••••"
