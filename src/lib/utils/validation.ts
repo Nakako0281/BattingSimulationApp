@@ -44,3 +44,15 @@ export const registerSchema = z
 
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
+
+/**
+ * チーム作成のバリデーションスキーマ
+ */
+export const createTeamSchema = z.object({
+  name: z
+    .string()
+    .min(1, "チーム名は必須です")
+    .max(100, "チーム名は100文字以下である必要があります"),
+});
+
+export type CreateTeamInput = z.infer<typeof createTeamSchema>;
