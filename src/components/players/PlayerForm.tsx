@@ -33,6 +33,7 @@ export default function PlayerForm({
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [validationWarnings, setValidationWarnings] = useState<string[]>([]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -40,12 +41,62 @@ export default function PlayerForm({
       ...prev,
       [name]: name === "name" ? value : Number(value),
     }));
+    // Clear warnings when user makes changes
+    setValidationWarnings([]);
+  };
+
+  const validateStats = (): boolean => {
+    const warnings: string[] = [];
+
+    // 打数と結果の整合性チェック
+    const totalOutcomes =
+      formData.singles +
+      formData.doubles +
+      formData.triples +
+      formData.home_runs +
+      formData.walks +
+      formData.strikeouts +
+      formData.groundouts +
+      formData.flyouts;
+
+    const hits = formData.singles + formData.doubles + formData.triples + formData.home_runs;
+
+    // 安打数が打数を超えていないかチェック
+    if (hits > formData.at_bats) {
+      warnings.push("安打数が打数を超えています");
+    }
+
+    // 統計の整合性の推奨チェック（警告のみ）
+    if (formData.at_bats > 0 && totalOutcomes === 0) {
+      warnings.push("打数が設定されていますが、結果が入力されていません");
+    }
+
+    // 打数がゼロなのに結果がある場合
+    if (formData.at_bats === 0 && hits > 0) {
+      warnings.push("打数がゼロですが安打が記録されています");
+    }
+
+    setValidationWarnings(warnings);
+
+    // エラー（安打数が打数を超える）の場合はfalseを返す
+    if (hits > formData.at_bats) {
+      return false;
+    }
+
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
+
+    // バリデーションチェック
+    if (!validateStats()) {
+      setError("入力データに誤りがあります");
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const url = mode === "create" ? "/api/players" : `/api/players/${player?.id}`;
@@ -96,6 +147,17 @@ export default function PlayerForm({
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
           {error}
+        </div>
+      )}
+
+      {validationWarnings.length > 0 && (
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded">
+          <p className="font-medium mb-2">⚠️ 入力内容を確認してください：</p>
+          <ul className="list-disc list-inside space-y-1">
+            {validationWarnings.map((warning, index) => (
+              <li key={index} className="text-sm">{warning}</li>
+            ))}
+          </ul>
         </div>
       )}
 

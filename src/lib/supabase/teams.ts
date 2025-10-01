@@ -71,7 +71,7 @@ export async function createTeam(userId: string, input: CreateTeamInput) {
   // Check team limit (max 4 teams per user)
   const { data: existingTeams, error: countError } = await supabase
     .from("teams")
-    .select("id")
+    .select("id, name")
     .eq("user_id", userId);
 
   if (countError) {
@@ -81,6 +81,15 @@ export async function createTeam(userId: string, input: CreateTeamInput) {
 
   if (existingTeams && existingTeams.length >= 4) {
     return { data: null, error: "Maximum team limit reached (4 teams)" };
+  }
+
+  // Check for duplicate team name
+  const duplicateName = existingTeams?.find(
+    (team) => team.name.toLowerCase() === input.name.toLowerCase()
+  );
+
+  if (duplicateName) {
+    return { data: null, error: `Team name "${input.name}" already exists` };
   }
 
   const { data, error } = await supabase
@@ -109,6 +118,28 @@ export async function updateTeam(
   input: UpdateTeamInput
 ) {
   const supabase = createServerClient();
+
+  // If name is being updated, check for duplicates
+  if (input.name) {
+    const { data: existingTeams, error: checkError } = await supabase
+      .from("teams")
+      .select("id, name")
+      .eq("user_id", userId)
+      .neq("id", teamId);
+
+    if (checkError) {
+      console.error("Error checking team names:", checkError);
+      return { data: null, error: checkError.message };
+    }
+
+    const duplicateName = existingTeams?.find(
+      (team) => team.name.toLowerCase() === input.name!.toLowerCase()
+    );
+
+    if (duplicateName) {
+      return { data: null, error: `Team name "${input.name}" already exists` };
+    }
+  }
 
   const { data, error } = await supabase
     .from("teams")

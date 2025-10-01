@@ -60,27 +60,38 @@ export type CreateTeamInput = z.infer<typeof createTeamSchema>;
 /**
  * 選手作成のバリデーションスキーマ
  */
-export const createPlayerSchema = z.object({
-  team_id: z.string().uuid("Invalid team ID"),
-  name: z
-    .string()
-    .min(1, "選手名は必須です")
-    .max(100, "選手名は100文字以下である必要があります"),
-  batting_order: z
-    .number()
-    .int("打順は整数である必要があります")
-    .min(1, "打順は1以上である必要があります")
-    .max(9, "打順は9以下である必要があります"),
-  singles: z.number().int().min(0, "単打は0以上である必要があります").default(0),
-  doubles: z.number().int().min(0, "二塁打は0以上である必要があります").default(0),
-  triples: z.number().int().min(0, "三塁打は0以上である必要があります").default(0),
-  home_runs: z.number().int().min(0, "本塁打は0以上である必要があります").default(0),
-  walks: z.number().int().min(0, "四球は0以上である必要があります").default(0),
-  strikeouts: z.number().int().min(0, "三振は0以上である必要があります").default(0),
-  groundouts: z.number().int().min(0, "ゴロアウトは0以上である必要があります").default(0),
-  flyouts: z.number().int().min(0, "フライアウトは0以上である必要があります").default(0),
-  at_bats: z.number().int().min(0, "打数は0以上である必要があります").default(0),
-});
+export const createPlayerSchema = z
+  .object({
+    team_id: z.string().uuid("Invalid team ID"),
+    name: z
+      .string()
+      .min(1, "選手名は必須です")
+      .max(100, "選手名は100文字以下である必要があります"),
+    batting_order: z
+      .number()
+      .int("打順は整数である必要があります")
+      .min(1, "打順は1以上である必要があります")
+      .max(9, "打順は9以下である必要があります"),
+    singles: z.number().int().min(0, "単打は0以上である必要があります").default(0),
+    doubles: z.number().int().min(0, "二塁打は0以上である必要があります").default(0),
+    triples: z.number().int().min(0, "三塁打は0以上である必要があります").default(0),
+    home_runs: z.number().int().min(0, "本塁打は0以上である必要があります").default(0),
+    walks: z.number().int().min(0, "四球は0以上である必要があります").default(0),
+    strikeouts: z.number().int().min(0, "三振は0以上である必要があります").default(0),
+    groundouts: z.number().int().min(0, "ゴロアウトは0以上である必要があります").default(0),
+    flyouts: z.number().int().min(0, "フライアウトは0以上である必要があります").default(0),
+    at_bats: z.number().int().min(0, "打数は0以上である必要があります").default(0),
+  })
+  .refine(
+    (data) => {
+      const hits = data.singles + data.doubles + data.triples + data.home_runs;
+      return hits <= data.at_bats;
+    },
+    {
+      message: "安打数が打数を超えることはできません",
+      path: ["at_bats"],
+    }
+  );
 
 /**
  * 選手更新のバリデーションスキーマ
