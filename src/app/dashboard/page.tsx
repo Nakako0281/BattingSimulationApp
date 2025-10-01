@@ -23,7 +23,7 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div
             onClick={() => router.push("/teams")}
             className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition cursor-pointer"
@@ -37,24 +37,43 @@ export default function DashboardPage() {
             <div className="text-blue-600 font-medium text-sm">→ チーム一覧へ</div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg p-6 opacity-50">
+          <div
+            onClick={() => router.push("/simulate")}
+            className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition cursor-pointer"
+          >
             <h3 className="text-lg font-bold text-gray-900 mb-2">
-              シミュレーション
+              試合シミュレーション
             </h3>
             <p className="text-gray-600 text-sm mb-4">
-              チームで試合をシミュレーションします
+              チームで1試合をシミュレーションします
             </p>
-            <div className="text-gray-400 font-medium text-sm">準備中</div>
+            <div className="text-blue-600 font-medium text-sm">→ シミュレーション開始</div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg p-6 opacity-50">
+          <div
+            onClick={() => router.push("/simulate/season")}
+            className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition cursor-pointer"
+          >
             <h3 className="text-lg font-bold text-gray-900 mb-2">
-              シーズンモード
+              シーズンシミュレーション
             </h3>
             <p className="text-gray-600 text-sm mb-4">
               複数試合のシーズンをシミュレーションします
             </p>
-            <div className="text-gray-400 font-medium text-sm">準備中</div>
+            <div className="text-blue-600 font-medium text-sm">→ シーズン開始</div>
+          </div>
+
+          <div
+            onClick={() => router.push("/history")}
+            className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition cursor-pointer"
+          >
+            <h3 className="text-lg font-bold text-gray-900 mb-2">
+              シミュレーション履歴
+            </h3>
+            <p className="text-gray-600 text-sm mb-4">
+              過去のシミュレーション結果を確認します
+            </p>
+            <div className="text-blue-600 font-medium text-sm">→ 履歴を見る</div>
           </div>
         </div>
       </div>
