@@ -36,6 +36,36 @@ export default function TeamDetailPage() {
     }
   };
 
+  const handleDeletePlayer = async (playerId: string, playerName: string) => {
+    if (!confirm(`「${playerName}」を削除してもよろしいですか？`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/players/${playerId}?team_id=${teamId}`, {
+        method: "DELETE",
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        alert(result.error || "削除に失敗しました");
+        return;
+      }
+
+      // 選手リストから削除
+      if (team) {
+        setTeam({
+          ...team,
+          players: team.players.filter((p) => p.id !== playerId),
+        });
+      }
+    } catch (err) {
+      console.error("Error deleting player:", err);
+      alert("削除に失敗しました");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -169,6 +199,12 @@ export default function TeamDetailPage() {
                             className="text-blue-600 hover:text-blue-800 font-medium mr-4"
                           >
                             編集
+                          </button>
+                          <button
+                            onClick={() => handleDeletePlayer(player.id, player.name)}
+                            className="text-red-600 hover:text-red-800 font-medium"
+                          >
+                            削除
                           </button>
                         </td>
                       </tr>
