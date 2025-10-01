@@ -32,7 +32,7 @@
    - **Project URL**: `https://xxxxx.supabase.co`
    - **anon public key**: `eyJhbGc...`（公開APIキー）
 
-### 5. 環境変数の設定
+### 5. 環境変数の設定　（スキップでOK）
 
 プロジェクトルートに`.env.local`ファイルを作成し、以下を設定:
 
