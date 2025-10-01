@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import type { TeamWithPlayers } from "@/types";
+import { calculatePlayerStats, calculateTeamStats, formatBattingAverage, formatPercentage, formatOPS } from "@/lib/utils/stats";
 
 export default function TeamDetailPage() {
   const params = useParams();
@@ -114,6 +115,52 @@ export default function TeamDetailPage() {
           </div>
         </div>
 
+        {/* チーム統計サマリー */}
+        {team.players.length > 0 && (
+          <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
+            <h2 className="text-lg font-bold text-gray-900 mb-4">チーム成績</h2>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {(() => {
+                const teamStats = calculateTeamStats(team.players);
+                return (
+                  <>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">
+                        {formatBattingAverage(teamStats.batting_average)}
+                      </div>
+                      <div className="text-sm text-gray-600">チーム打率</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">
+                        {formatPercentage(teamStats.on_base_percentage)}
+                      </div>
+                      <div className="text-sm text-gray-600">チーム出塁率</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-600">
+                        {formatPercentage(teamStats.slugging_percentage)}
+                      </div>
+                      <div className="text-sm text-gray-600">チーム長打率</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-orange-600">
+                        {formatOPS(teamStats.ops)}
+                      </div>
+                      <div className="text-sm text-gray-600">チームOPS</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-gray-900">
+                        {teamStats.home_runs}
+                      </div>
+                      <div className="text-sm text-gray-600">本塁打</div>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+        )}
+
         <div className="bg-white border border-gray-200 rounded-lg p-8 mb-8">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-gray-900">選手一覧</h2>
@@ -162,6 +209,18 @@ export default function TeamDetailPage() {
                     <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
                       本塁打
                     </th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
+                      打率
+                    </th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
+                      出塁率
+                    </th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
+                      長打率
+                    </th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
+                      OPS
+                    </th>
                     <th className="px-4 py-3 text-center text-sm font-medium text-gray-900">
                       操作
                     </th>
@@ -169,11 +228,7 @@ export default function TeamDetailPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {team.players.map((player) => {
-                    const hits =
-                      player.singles +
-                      player.doubles +
-                      player.triples +
-                      player.home_runs;
+                    const stats = calculatePlayerStats(player);
                     return (
                       <tr key={player.id} className="hover:bg-gray-50">
                         <td className="px-4 py-3 text-sm text-gray-900">
@@ -183,13 +238,25 @@ export default function TeamDetailPage() {
                           {player.name}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600 text-right">
-                          {player.at_bats}
+                          {stats.at_bats}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600 text-right">
-                          {hits}
+                          {stats.hits}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600 text-right">
-                          {player.home_runs}
+                          {stats.home_runs}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-900 text-right font-medium">
+                          {formatBattingAverage(stats.batting_average)}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600 text-right">
+                          {formatPercentage(stats.on_base_percentage)}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600 text-right">
+                          {formatPercentage(stats.slugging_percentage)}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-900 text-right font-medium">
+                          {formatOPS(stats.ops)}
                         </td>
                         <td className="px-4 py-3 text-sm text-center">
                           <button
