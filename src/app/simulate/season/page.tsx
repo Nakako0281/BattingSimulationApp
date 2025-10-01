@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import LoadingScreen from "@/components/ui/LoadingScreen";
+import Card from "@/components/ui/Card";
 import type { Team, SeasonResult } from "@/types";
 import { formatBattingAverage, formatPercentage, formatOPS } from "@/lib/utils/stats";
 import { getSeasonSummary } from "@/lib/simulation/season";
@@ -123,19 +125,15 @@ export default function SimulateSeasonPage() {
   };
 
   if (isFetchingTeams) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">読み込み中...</div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   const summary = seasonResult ? getSeasonSummary(seasonResult) : null;
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">
+      <div className="max-w-7xl mx-auto px-4 py-4 md:py-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 md:mb-8">
           シーズンシミュレーション
         </h1>
 

@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import LoadingScreen from "@/components/ui/LoadingScreen";
+import Card from "@/components/ui/Card";
 import type { Team, GameResult } from "@/types";
 import { formatBattingAverage } from "@/lib/utils/stats";
 
@@ -120,17 +122,13 @@ export default function SimulatePage() {
   };
 
   if (isFetchingTeams) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">読み込み中...</div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">
+      <div className="max-w-7xl mx-auto px-4 py-4 md:py-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 md:mb-8">
           試合シミュレーション
         </h1>
 
@@ -279,9 +277,11 @@ export default function SimulatePage() {
             </div>
 
             {/* 選手成績 */}
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">選手成績</h3>
-              <div className="overflow-x-auto">
+            <Card>
+              <h3 className="text-base md:text-lg font-bold text-gray-900 mb-4">選手成績</h3>
+
+              {/* Desktop Table */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
@@ -311,7 +311,39 @@ export default function SimulatePage() {
                   </tbody>
                 </table>
               </div>
-            </div>
+
+              {/* Mobile Cards */}
+              <div className="md:hidden space-y-3">
+                {gameResult.playerStats
+                  .sort((a, b) => a.battingOrder - b.battingOrder)
+                  .map((player) => (
+                    <div key={player.playerId} className="border border-gray-200 rounded-lg p-3">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-bold text-gray-900">
+                          {player.battingOrder}. {player.playerName}
+                        </span>
+                        <span className="text-sm font-bold text-blue-600">
+                          {formatBattingAverage(player.battingAverage)}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        <div className="text-center">
+                          <div className="font-medium text-gray-900">{player.atBats}</div>
+                          <div className="text-gray-600">打数</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="font-medium text-gray-900">{player.hits}</div>
+                          <div className="text-gray-600">安打</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="font-medium text-gray-900">{player.rbi}</div>
+                          <div className="text-gray-600">打点</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </Card>
           </div>
         )}
       </div>

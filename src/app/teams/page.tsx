@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import TeamCard from "@/components/teams/TeamCard";
+import LoadingScreen from "@/components/ui/LoadingScreen";
+import EmptyState from "@/components/ui/EmptyState";
 import type { Team } from "@/types";
 
 export default function TeamsPage() {
@@ -57,21 +59,17 @@ export default function TeamsPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">読み込み中...</div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">マイチーム</h1>
+      <div className="max-w-7xl mx-auto px-4 py-4 md:py-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">マイチーム</h1>
           <button
             onClick={() => router.push("/teams/new")}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-medium"
+            className="w-full sm:w-auto bg-blue-600 text-white px-4 md:px-6 py-2 md:py-3 rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={teams.length >= 4}
           >
             新規チーム作成
@@ -91,15 +89,14 @@ export default function TeamsPage() {
         )}
 
         {teams.length === 0 ? (
-          <div className="bg-white border border-gray-200 rounded-lg p-12 text-center">
-            <p className="text-gray-600 mb-4">まだチームがありません</p>
-            <button
-              onClick={() => router.push("/teams/new")}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-medium"
-            >
-              最初のチームを作成
-            </button>
-          </div>
+          <EmptyState
+            title="まだチームがありません"
+            description="チームを作成して選手を登録しましょう"
+            action={{
+              label: "最初のチームを作成",
+              onClick: () => router.push("/teams/new"),
+            }}
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {teams.map((team) => (

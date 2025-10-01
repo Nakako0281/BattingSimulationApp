@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import LoadingScreen from "@/components/ui/LoadingScreen";
+import EmptyState from "@/components/ui/EmptyState";
+import Card from "@/components/ui/Card";
 import type { SimulationResultWithTeam } from "@/types/database";
 
 export default function HistoryPage() {
@@ -69,125 +72,117 @@ export default function HistoryPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">読み込み中...</div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">
+      <div className="max-w-7xl mx-auto px-4 py-4 md:py-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 md:mb-8">
           シミュレーション履歴
         </h1>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 text-sm md:text-base">
             {error}
           </div>
         )}
 
         {results.length === 0 ? (
-          <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
-            <p className="text-gray-600 mb-4">保存されたシミュレーション結果がありません</p>
-            <button
-              onClick={() => router.push("/simulate")}
-              className="text-blue-600 hover:text-blue-800 font-medium"
-            >
-              → シミュレーションを実行
-            </button>
-          </div>
+          <EmptyState
+            title="保存されたシミュレーション結果がありません"
+            description="シミュレーションを実行して結果を保存しましょう"
+            action={{
+              label: "シミュレーションを実行",
+              onClick: () => router.push("/simulate"),
+            }}
+          />
         ) : (
           <div className="space-y-4">
             {results.map((result) => (
-              <div
-                key={result.id}
-                className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition"
-              >
-                <div className="flex justify-between items-start mb-4">
+              <Card key={result.id} className="hover:shadow-md transition">
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-0 mb-4">
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900">
+                    <h3 className="text-base md:text-lg font-bold text-gray-900">
                       {result.team.name}
                     </h3>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-xs md:text-sm text-gray-600">
                       {formatDate(result.created_at)}
                     </p>
                   </div>
-                  <div className="flex gap-2">
-                    <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
+                  <div className="flex gap-2 items-center">
+                    <span className="px-2 md:px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs md:text-sm font-medium whitespace-nowrap">
                       {result.simulation_type === "single_game" ? "単一試合" : "シーズン"}
                     </span>
                     <button
                       onClick={() => handleDelete(result.id)}
-                      className="text-red-600 hover:text-red-800 text-sm font-medium"
+                      className="text-red-600 hover:text-red-800 text-xs md:text-sm font-medium whitespace-nowrap"
                     >
                       削除
                     </button>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                   {result.simulation_type === "single_game" ? (
                     <>
-                      <div>
-                        <div className="text-2xl font-bold text-blue-600">
+                      <div className="text-center">
+                        <div className="text-xl md:text-2xl font-bold text-blue-600">
                           {result.total_runs}
                         </div>
-                        <div className="text-sm text-gray-600">得点</div>
+                        <div className="text-xs md:text-sm text-gray-600">得点</div>
                       </div>
-                      <div>
-                        <div className="text-2xl font-bold text-gray-900">
+                      <div className="text-center">
+                        <div className="text-xl md:text-2xl font-bold text-gray-900">
                           {result.total_hits}
                         </div>
-                        <div className="text-sm text-gray-600">安打</div>
+                        <div className="text-xs md:text-sm text-gray-600">安打</div>
                       </div>
-                      <div>
-                        <div className="text-2xl font-bold text-gray-900">
+                      <div className="text-center">
+                        <div className="text-xl md:text-2xl font-bold text-gray-900">
                           {result.total_errors}
                         </div>
-                        <div className="text-sm text-gray-600">失策</div>
+                        <div className="text-xs md:text-sm text-gray-600">失策</div>
                       </div>
-                      <div>
-                        <div className="text-2xl font-bold text-gray-900">
+                      <div className="text-center">
+                        <div className="text-xl md:text-2xl font-bold text-gray-900">
                           {result.innings_played}
                         </div>
-                        <div className="text-sm text-gray-600">イニング</div>
+                        <div className="text-xs md:text-sm text-gray-600">イニング</div>
                       </div>
                     </>
                   ) : (
                     <>
-                      <div>
-                        <div className="text-2xl font-bold text-blue-600">
+                      <div className="text-center">
+                        <div className="text-xl md:text-2xl font-bold text-blue-600">
                           {result.wins}
                         </div>
-                        <div className="text-sm text-gray-600">勝</div>
+                        <div className="text-xs md:text-sm text-gray-600">勝</div>
                       </div>
-                      <div>
-                        <div className="text-2xl font-bold text-red-600">
+                      <div className="text-center">
+                        <div className="text-xl md:text-2xl font-bold text-red-600">
                           {result.losses}
                         </div>
-                        <div className="text-sm text-gray-600">敗</div>
+                        <div className="text-xs md:text-sm text-gray-600">敗</div>
                       </div>
-                      <div>
-                        <div className="text-2xl font-bold text-green-600">
+                      <div className="text-center">
+                        <div className="text-xl md:text-2xl font-bold text-green-600">
                           {result.wins && result.games_played
                             ? ((result.wins / result.games_played) * 100).toFixed(1)
                             : "0.0"}%
                         </div>
-                        <div className="text-sm text-gray-600">勝率</div>
+                        <div className="text-xs md:text-sm text-gray-600">勝率</div>
                       </div>
-                      <div>
-                        <div className="text-2xl font-bold text-gray-900">
+                      <div className="text-center">
+                        <div className="text-xl md:text-2xl font-bold text-gray-900">
                           {result.games_played}
                         </div>
-                        <div className="text-sm text-gray-600">試合</div>
+                        <div className="text-xs md:text-sm text-gray-600">試合</div>
                       </div>
                     </>
                   )}
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         )}
