@@ -1,8 +1,8 @@
-const bcrypt = require('bcryptjs');
+const bcryptjs = require('bcryptjs');
 
 // パスワードをハッシュ化
 const password = 'testpass123'; // 好きなパスワードに変更
-const hash = bcrypt.hashSync(password, 10);
+const hash = bcryptjs.hashSync(password, 10);
 
 console.log('========================================');
 console.log('テストユーザー作成用のSQL');

@@ -1,11 +1,13 @@
 -- ============================================
--- RLS Policy Fix for User Registration
+-- RLS Policy Fix for User Registration and Login
 -- ============================================
 
--- USERS: 新規登録を許可するポリシーを追加
+-- USERS: 新規登録とログインを許可するポリシーを追加
 -- 既存のポリシーを削除
 DROP POLICY IF EXISTS users_select_own ON users;
 DROP POLICY IF EXISTS users_update_own ON users;
+DROP POLICY IF EXISTS users_insert_public ON users;
+DROP POLICY IF EXISTS users_select_for_auth ON users;
 
 -- 新しいポリシーを作成
 
@@ -14,10 +16,11 @@ CREATE POLICY users_insert_public ON users
   FOR INSERT
   WITH CHECK (true);
 
--- 2. ユーザーは自分自身のデータを閲覧できる
-CREATE POLICY users_select_own ON users
+-- 2. 認証のためにユーザー情報を読み取れる（ログイン用）
+-- ニックネームでユーザーを検索できるようにする
+CREATE POLICY users_select_for_auth ON users
   FOR SELECT
-  USING (id::text = current_setting('request.jwt.claims', true)::json->>'sub');
+  USING (true);
 
 -- 3. ユーザーは自分自身のデータを更新できる
 CREATE POLICY users_update_own ON users

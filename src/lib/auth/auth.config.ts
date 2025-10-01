@@ -49,14 +49,19 @@ export const authConfig = {
             .eq("nickname", nickname)
             .single();
 
+          console.log("User lookup:", { nickname, found: !!user, error: error?.message });
+
           if (error || !user) {
+            console.log("User not found or error:", error);
             return null;
           }
 
           // パスワード検証
           const isValid = await verifyPassword(password, user.password_hash);
+          console.log("Password verification:", { isValid });
 
           if (!isValid) {
+            console.log("Invalid password");
             return null;
           }
 
