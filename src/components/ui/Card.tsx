@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, memo } from "react";
 
 interface CardProps {
   children: ReactNode;
@@ -6,7 +6,7 @@ interface CardProps {
   padding?: "none" | "sm" | "md" | "lg";
 }
 
-export default function Card({ children, className = "", padding = "md" }: CardProps) {
+function Card({ children, className = "", padding = "md" }: CardProps) {
   const paddingClasses = {
     none: "",
     sm: "p-4",
@@ -20,3 +20,5 @@ export default function Card({ children, className = "", padding = "md" }: CardP
     </div>
   );
 }
+
+export default memo(Card);

@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useCallback, useMemo } from "react";
 import Link from "next/link";
 import type { Team } from "@/types";
 
@@ -8,12 +9,17 @@ interface TeamCardProps {
   onDelete?: (teamId: string) => void;
 }
 
-export default function TeamCard({ team, onDelete }: TeamCardProps) {
-  const handleDelete = () => {
+function TeamCard({ team, onDelete }: TeamCardProps) {
+  const handleDelete = useCallback(() => {
     if (confirm(`「${team.name}」を削除してもよろしいですか？`)) {
       onDelete?.(team.id);
     }
-  };
+  }, [team.name, team.id, onDelete]);
+
+  const formattedDate = useMemo(
+    () => new Date(team.created_at).toLocaleDateString("ja-JP"),
+    [team.created_at]
+  );
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition">
@@ -44,8 +50,10 @@ export default function TeamCard({ team, onDelete }: TeamCardProps) {
       </div>
 
       <div className="text-sm text-gray-500">
-        作成日: {new Date(team.created_at).toLocaleDateString("ja-JP")}
+        作成日: {formattedDate}
       </div>
     </div>
   );
 }
+
+export default memo(TeamCard);
