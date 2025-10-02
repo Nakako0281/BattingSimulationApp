@@ -4,9 +4,12 @@
 
 import type {
   Player,
+  Team,
   AtBatResult,
   InningResult,
   GameResult,
+  MatchResult,
+  WinnerType,
   BaseState,
   InningState,
   OutcomeType,
@@ -295,5 +298,53 @@ export function simulateGame(
     totalHits,
     totalErrors: 0,
     playerStats,
+  };
+}
+
+/**
+ * Simulate a match between two teams (V2)
+ */
+export function simulateMatch(
+  homeTeam: Team,
+  homePlayers: Player[],
+  awayTeam: Team,
+  awayPlayers: Player[],
+  innings: number = 9
+): MatchResult {
+  // Simulate game for home team
+  const homeResult = simulateGame(
+    homeTeam.id,
+    homeTeam.name,
+    homePlayers,
+    innings
+  );
+
+  // Simulate game for away team
+  const awayResult = simulateGame(
+    awayTeam.id,
+    awayTeam.name,
+    awayPlayers,
+    innings
+  );
+
+  // Determine winner
+  let winner: WinnerType;
+  if (homeResult.totalRuns > awayResult.totalRuns) {
+    winner = "home";
+  } else if (awayResult.totalRuns > homeResult.totalRuns) {
+    winner = "away";
+  } else {
+    winner = "tie";
+  }
+
+  return {
+    homeTeam: homeResult,
+    awayTeam: awayResult,
+    winner,
+    finalScore: {
+      home: homeResult.totalRuns,
+      away: awayResult.totalRuns,
+    },
+    innings,
   };
 }

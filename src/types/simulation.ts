@@ -46,6 +46,23 @@ export interface GameResult {
   playerStats: PlayerGameStats[];
 }
 
+// ============================================
+// 2-Team Match Types (V2)
+// ============================================
+
+export type WinnerType = "home" | "away" | "tie";
+
+export interface MatchResult {
+  homeTeam: GameResult;
+  awayTeam: GameResult;
+  winner: WinnerType;
+  finalScore: {
+    home: number;
+    away: number;
+  };
+  innings: number;
+}
+
 export interface PlayerGameStats {
   playerId: string;
   playerName: string;
@@ -64,26 +81,39 @@ export interface PlayerGameStats {
 // ============================================
 
 export interface SimulationConfig {
-  teamId: string;
-  numberOfGames: number;
+  homeTeamId: string;
+  awayTeamId: string;
   innings: number;
 }
 
 export interface SeasonSimulationConfig {
-  teamId: string;
+  homeTeamId: string;
+  awayTeamId: string;
   numberOfGames: number;
   innings: number;
 }
 
 export interface SeasonResult {
-  teamId: string;
-  teamName: string;
-  games: GameResult[];
+  homeTeamId: string;
+  awayTeamId: string;
+  homeTeamName: string;
+  awayTeamName: string;
+  matches: MatchResult[];
   seasonStats: SeasonStats;
 }
 
 export interface SeasonStats {
   totalGames: number;
+  homeWins: number;
+  awayWins: number;
+  ties: number;
+  homeTeamStats: TeamSeasonStats;
+  awayTeamStats: TeamSeasonStats;
+}
+
+export interface TeamSeasonStats {
+  teamId: string;
+  teamName: string;
   totalRuns: number;
   totalHits: number;
   totalAtBats: number;

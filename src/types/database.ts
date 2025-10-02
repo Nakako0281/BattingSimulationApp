@@ -97,24 +97,37 @@ export interface PlayerWithTeam extends Player {
   team: Team;
 }
 
+// V2: 2-Team Match System
 export interface SimulationResult {
   id: string;
   user_id: string;
-  team_id: string;
+  home_team_id: string;
+  away_team_id: string;
   simulation_type: "single_game" | "season";
-  total_runs: number | null;
-  total_hits: number | null;
-  total_errors: number | null;
+
+  // Single game results
+  home_runs: number | null;
+  away_runs: number | null;
+  home_hits: number | null;
+  away_hits: number | null;
+  winner: "home" | "away" | "tie" | null;
   innings_played: number | null;
+
+  // Season results
   games_played: number | null;
-  wins: number | null;
-  losses: number | null;
-  result_data: any; // JSONB - can be GameResult or SeasonResult
+  home_wins: number | null;
+  home_losses: number | null;
+  away_wins: number | null;
+  away_losses: number | null;
+  ties: number | null;
+
+  result_data: any; // JSONB - MatchResult or SeasonResult
   created_at: string;
 }
 
-export interface SimulationResultWithTeam extends SimulationResult {
-  team: Team;
+export interface SimulationResultWithTeams extends SimulationResult {
+  homeTeam: Team;
+  awayTeam: Team;
 }
 
 // ============================================

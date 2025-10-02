@@ -18,6 +18,8 @@ export type {
   PlayerStats,
   ApiResponse,
   PaginatedResponse,
+  SimulationResult,
+  SimulationResultWithTeams,
 } from "./database";
 
 // Simulation types
@@ -37,4 +39,8 @@ export type {
   BaseState,
   InningState,
   SimulationState,
+  // V2 Types
+  WinnerType,
+  MatchResult,
+  TeamSeasonStats,
 } from "./simulation";
