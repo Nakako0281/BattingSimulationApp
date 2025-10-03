@@ -37,12 +37,6 @@ CREATE TABLE simulation_results (
 
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
 
-  -- Ensure both teams belong to the same user
-  CONSTRAINT same_user_teams CHECK (
-    home_team_id IN (SELECT id FROM teams WHERE user_id = simulation_results.user_id) AND
-    away_team_id IN (SELECT id FROM teams WHERE user_id = simulation_results.user_id)
-  ),
-
   -- Ensure different teams
   CONSTRAINT different_teams CHECK (home_team_id != away_team_id)
 );

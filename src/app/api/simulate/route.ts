@@ -1,17 +1,18 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getTeamWithPlayers } from "@/lib/supabase/teams";
-import { simulateGame } from "@/lib/simulation/engine";
+import { simulateMatch } from "@/lib/simulation/engine";
 import { z } from "zod";
 
 const simulateSchema = z.object({
-  teamId: z.string().uuid(),
+  homeTeamId: z.string().uuid(),
+  awayTeamId: z.string().uuid(),
   innings: z.number().int().min(1).max(15).default(9),
 });
 
 /**
  * POST /api/simulate
- * Run a single game simulation
+ * Run a single match simulation between two teams
  */
 export async function POST(request: Request) {
   try {
@@ -25,34 +26,71 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { teamId, innings } = simulateSchema.parse(body);
+    const { homeTeamId, awayTeamId, innings } = simulateSchema.parse(body);
 
-    // Get team with players
-    const { data: team, error } = await getTeamWithPlayers(teamId, session.user.id);
-
-    if (error || !team) {
+    // Validate teams are different
+    if (homeTeamId === awayTeamId) {
       return NextResponse.json(
-        { success: false, error: error || "Team not found" },
-        { status: 404 }
-      );
-    }
-
-    // Check if team has players
-    if (team.players.length === 0) {
-      return NextResponse.json(
-        { success: false, error: "Team has no players" },
+        { success: false, error: "Home and away teams must be different" },
         { status: 400 }
       );
     }
 
-    // Run simulation
-    const result = simulateGame(team.id, team.name, team.players, innings);
+    // Get home team with players
+    const { data: homeTeam, error: homeError } = await getTeamWithPlayers(
+      homeTeamId,
+      session.user.id
+    );
+
+    if (homeError || !homeTeam) {
+      return NextResponse.json(
+        { success: false, error: homeError || "Home team not found" },
+        { status: 404 }
+      );
+    }
+
+    // Get away team with players
+    const { data: awayTeam, error: awayError } = await getTeamWithPlayers(
+      awayTeamId,
+      session.user.id
+    );
+
+    if (awayError || !awayTeam) {
+      return NextResponse.json(
+        { success: false, error: awayError || "Away team not found" },
+        { status: 404 }
+      );
+    }
+
+    // Check if teams have players
+    if (homeTeam.players.length === 0) {
+      return NextResponse.json(
+        { success: false, error: "Home team has no players" },
+        { status: 400 }
+      );
+    }
+
+    if (awayTeam.players.length === 0) {
+      return NextResponse.json(
+        { success: false, error: "Away team has no players" },
+        { status: 400 }
+      );
+    }
+
+    // Run match simulation
+    const result = simulateMatch(
+      homeTeam,
+      homeTeam.players,
+      awayTeam,
+      awayTeam.players,
+      innings
+    );
 
     return NextResponse.json({ success: true, data: result });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { success: false, error: "Invalid input", details: error.errors },
+        { success: false, error: "Invalid input", details: error.issues },
         { status: 400 }
       );
     }

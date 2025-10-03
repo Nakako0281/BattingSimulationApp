@@ -252,6 +252,10 @@ export function simulateGame(
           battingOrder: atBat.battingOrder,
           atBats: 0,
           hits: 0,
+          singles: 0,
+          doubles: 0,
+          triples: 0,
+          homeRuns: 0,
           runs: 0,
           rbi: 0,
           walks: 0,
@@ -269,7 +273,20 @@ export function simulateGame(
         stats.hits++;
       }
 
+      if (atBat.outcome === "single") {
+        stats.singles++;
+      }
+
+      if (atBat.outcome === "double") {
+        stats.doubles++;
+      }
+
+      if (atBat.outcome === "triple") {
+        stats.triples++;
+      }
+
       if (atBat.outcome === "home_run") {
+        stats.homeRuns++;
         stats.runs++;
       }
 

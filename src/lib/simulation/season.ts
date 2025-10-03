@@ -44,10 +44,12 @@ export function simulateSeason(
   const seasonStats = aggregateSeasonStats(games, players);
 
   return {
-    teamId,
-    teamName,
-    games,
-    seasonStats,
+    homeTeamId: teamId,
+    awayTeamId: "",
+    homeTeamName: teamName,
+    awayTeamName: "",
+    matches: games as any,
+    seasonStats: seasonStats as any,
   };
 }
 
@@ -172,12 +174,29 @@ function aggregateSeasonStats(games: any[], players: Player[]): SeasonStats {
 
   return {
     totalGames: games.length,
-    totalRuns,
-    totalHits,
-    totalAtBats,
-    averageRunsPerGame,
-    averageBattingAverage,
-    playerSeasonStats,
+    homeWins: 0,
+    awayWins: 0,
+    ties: 0,
+    homeTeamStats: {
+      teamId: "",
+      teamName: "",
+      totalRuns,
+      totalHits,
+      totalAtBats,
+      averageRunsPerGame,
+      averageBattingAverage,
+      playerSeasonStats,
+    },
+    awayTeamStats: {
+      teamId: "",
+      teamName: "",
+      totalRuns: 0,
+      totalHits: 0,
+      totalAtBats: 0,
+      averageRunsPerGame: 0,
+      averageBattingAverage: 0,
+      playerSeasonStats: [],
+    },
   };
 }
 
@@ -185,32 +204,32 @@ function aggregateSeasonStats(games: any[], players: Player[]): SeasonStats {
  * Calculate season statistics summary for display
  */
 export function getSeasonSummary(seasonResult: SeasonResult) {
-  const { games, seasonStats } = seasonResult;
+  const { matches, seasonStats } = seasonResult;
 
   // Find best game (most runs)
-  const bestGame = games.reduce((best, game) =>
-    game.totalRuns > best.totalRuns ? game : best
-  , games[0]);
+  const bestGame = matches.reduce((best: any, game: any) =>
+    game.finalScore.home > best.finalScore.home ? game : best
+  , matches[0]);
 
   // Find worst game (least runs)
-  const worstGame = games.reduce((worst, game) =>
-    game.totalRuns < worst.totalRuns ? game : worst
-  , games[0]);
+  const worstGame = matches.reduce((worst: any, game: any) =>
+    game.finalScore.home < worst.finalScore.home ? game : worst
+  , matches[0]);
 
   // Calculate win rate (assuming 4+ runs is a win - simplified)
-  const wins = games.filter(game => game.totalRuns >= 4).length;
-  const winRate = wins / games.length;
+  const wins = matches.filter((game: any) => game.finalScore.home >= 4).length;
+  const winRate = wins / matches.length;
 
   return {
     totalGames: seasonStats.totalGames,
     wins,
     losses: seasonStats.totalGames - wins,
     winRate,
-    averageRunsPerGame: seasonStats.averageRunsPerGame,
-    totalRuns: seasonStats.totalRuns,
-    totalHits: seasonStats.totalHits,
-    bestGameRuns: bestGame.totalRuns,
-    worstGameRuns: worstGame.totalRuns,
+    averageRunsPerGame: seasonStats.homeTeamStats.averageRunsPerGame,
+    totalRuns: seasonStats.homeTeamStats.totalRuns,
+    totalHits: seasonStats.homeTeamStats.totalHits,
+    bestGameRuns: bestGame.finalScore.home,
+    worstGameRuns: worstGame.finalScore.home,
   };
 }
 

@@ -1,21 +1,23 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { saveSingleGameResult, saveSeasonResult } from "@/lib/supabase/simulation-results";
+import { saveMatchResult, saveMatchSeasonResult } from "@/lib/supabase/simulation-results";
 import { z } from "zod";
 
-const saveGameSchema = z.object({
+const saveMatchSchema = z.object({
   type: z.literal("single_game"),
-  teamId: z.string().uuid(),
-  result: z.any(), // GameResult type
+  homeTeamId: z.string().uuid(),
+  awayTeamId: z.string().uuid(),
+  result: z.any(), // MatchResult type
 });
 
-const saveSeasonSchema = z.object({
+const saveMatchSeasonSchema = z.object({
   type: z.literal("season"),
-  teamId: z.string().uuid(),
+  homeTeamId: z.string().uuid(),
+  awayTeamId: z.string().uuid(),
   result: z.any(), // SeasonResult type
 });
 
-const saveSchema = z.discriminatedUnion("type", [saveGameSchema, saveSeasonSchema]);
+const saveSchema = z.discriminatedUnion("type", [saveMatchSchema, saveMatchSeasonSchema]);
 
 /**
  * POST /api/simulate/save
@@ -38,15 +40,17 @@ export async function POST(request: Request) {
     let result;
 
     if (validated.type === "single_game") {
-      result = await saveSingleGameResult(
+      result = await saveMatchResult(
         session.user.id,
-        validated.teamId,
+        validated.homeTeamId,
+        validated.awayTeamId,
         validated.result
       );
     } else {
-      result = await saveSeasonResult(
+      result = await saveMatchSeasonResult(
         session.user.id,
-        validated.teamId,
+        validated.homeTeamId,
+        validated.awayTeamId,
         validated.result
       );
     }
@@ -62,7 +66,7 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { success: false, error: "Invalid input", details: error.errors },
+        { success: false, error: "Invalid input", details: error.issues },
         { status: 400 }
       );
     }

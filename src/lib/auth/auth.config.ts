@@ -71,6 +71,7 @@ export const authConfig = {
           return {
             id: user.id,
             name: user.nickname,
+            nickname: user.nickname,
             email: `${user.nickname}@local`, // NextAuthはemailを期待するためダミー
           };
         } catch (error) {

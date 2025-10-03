@@ -4,18 +4,19 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import Card from "@/components/ui/Card";
-import type { Team, GameResult } from "@/types";
+import type { Team, MatchResult } from "@/types";
 import { formatBattingAverage } from "@/lib/utils/stats";
 
 export default function SimulatePage() {
   const router = useRouter();
   const [teams, setTeams] = useState<Team[]>([]);
-  const [selectedTeamId, setSelectedTeamId] = useState("");
+  const [homeTeamId, setHomeTeamId] = useState("");
+  const [awayTeamId, setAwayTeamId] = useState("");
   const [innings, setInnings] = useState(9);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingTeams, setIsFetchingTeams] = useState(true);
   const [error, setError] = useState("");
-  const [gameResult, setGameResult] = useState<GameResult | null>(null);
+  const [matchResult, setMatchResult] = useState<MatchResult | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
@@ -36,7 +37,10 @@ export default function SimulatePage() {
 
       setTeams(result.data || []);
       if (result.data && result.data.length > 0) {
-        setSelectedTeamId(result.data[0].id);
+        setHomeTeamId(result.data[0].id);
+        if (result.data.length > 1) {
+          setAwayTeamId(result.data[1].id);
+        }
       }
     } catch (err) {
       console.error("Error fetching teams:", err);
@@ -47,14 +51,19 @@ export default function SimulatePage() {
   };
 
   const handleSimulate = async () => {
-    if (!selectedTeamId) {
-      setError("チームを選択してください");
+    if (!homeTeamId || !awayTeamId) {
+      setError("ホームチームとアウェイチームを選択してください");
+      return;
+    }
+
+    if (homeTeamId === awayTeamId) {
+      setError("異なるチームを選択してください");
       return;
     }
 
     setError("");
     setIsLoading(true);
-    setGameResult(null);
+    setMatchResult(null);
     setSaveSuccess(false);
 
     try {
@@ -64,7 +73,8 @@ export default function SimulatePage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          teamId: selectedTeamId,
+          homeTeamId,
+          awayTeamId,
           innings,
         }),
       });
@@ -76,7 +86,7 @@ export default function SimulatePage() {
         return;
       }
 
-      setGameResult(result.data);
+      setMatchResult(result.data);
     } catch (err) {
       console.error("Simulation error:", err);
       setError("シミュレーションに失敗しました");
@@ -86,7 +96,7 @@ export default function SimulatePage() {
   };
 
   const handleSaveResult = async () => {
-    if (!gameResult) return;
+    if (!matchResult) return;
 
     setIsSaving(true);
     setError("");
@@ -99,8 +109,9 @@ export default function SimulatePage() {
         },
         body: JSON.stringify({
           type: "single_game",
-          teamId: selectedTeamId,
-          result: gameResult,
+          homeTeamId,
+          awayTeamId,
+          result: matchResult,
         }),
       });
 
@@ -142,9 +153,9 @@ export default function SimulatePage() {
             </div>
           )}
 
-          {teams.length === 0 ? (
+          {teams.length < 2 ? (
             <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded">
-              <p className="mb-2">シミュレーションを実行するにはチームを作成してください</p>
+              <p className="mb-2">シミュレーションを実行するには2つのチームが必要です（現在: {teams.length}チーム）</p>
               <button
                 onClick={() => router.push("/teams/new")}
                 className="text-blue-600 hover:text-blue-800 font-medium"
@@ -155,13 +166,32 @@ export default function SimulatePage() {
           ) : (
             <div className="space-y-4">
               <div>
-                <label htmlFor="team" className="block text-sm font-medium mb-2">
-                  チーム選択
+                <label htmlFor="homeTeam" className="block text-sm font-medium mb-2">
+                  ホームチーム
                 </label>
                 <select
-                  id="team"
-                  value={selectedTeamId}
-                  onChange={(e) => setSelectedTeamId(e.target.value)}
+                  id="homeTeam"
+                  value={homeTeamId}
+                  onChange={(e) => setHomeTeamId(e.target.value)}
+                  disabled={isLoading}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 disabled:bg-gray-100"
+                >
+                  {teams.map((team) => (
+                    <option key={team.id} value={team.id}>
+                      {team.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="awayTeam" className="block text-sm font-medium mb-2">
+                  アウェイチーム
+                </label>
+                <select
+                  id="awayTeam"
+                  value={awayTeamId}
+                  onChange={(e) => setAwayTeamId(e.target.value)}
                   disabled={isLoading}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 disabled:bg-gray-100"
                 >
@@ -191,21 +221,21 @@ export default function SimulatePage() {
 
               <button
                 onClick={handleSimulate}
-                disabled={isLoading || !selectedTeamId}
+                disabled={isLoading || !homeTeamId || !awayTeamId || homeTeamId === awayTeamId}
                 className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
               >
-                {isLoading ? "シミュレーション中..." : "シミュレーション実行"}
+                {isLoading ? "シミュレーション中..." : "試合シミュレーション実行"}
               </button>
             </div>
           )}
         </div>
 
         {/* 結果表示 */}
-        {gameResult && (
+        {matchResult && (
           <div className="space-y-6">
             {/* スコアボード */}
             <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex justify-between items-center mb-6">
                 <h2 className="text-lg font-bold text-gray-900">試合結果</h2>
                 <div className="flex gap-2">
                   {saveSuccess && (
@@ -220,25 +250,74 @@ export default function SimulatePage() {
                   </button>
                 </div>
               </div>
-              <div className="text-center mb-6">
-                <div className="text-4xl font-bold text-blue-600 mb-2">
-                  {gameResult.totalRuns} 得点
+
+              {/* スコアボード */}
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-6">
+                <div className="flex justify-center items-center gap-8 mb-4">
+                  <div className="text-center flex-1">
+                    <div className="text-sm text-gray-600 mb-2">ホーム</div>
+                    <div className="text-xl font-bold text-gray-900 mb-2">{matchResult.homeTeam.teamName}</div>
+                    <div className={`text-5xl font-bold ${
+                      matchResult.winner === "home" ? "text-blue-600" : "text-gray-400"
+                    }`}>
+                      {matchResult.finalScore.home}
+                    </div>
+                  </div>
+
+                  <div className="text-3xl font-bold text-gray-400">-</div>
+
+                  <div className="text-center flex-1">
+                    <div className="text-sm text-gray-600 mb-2">アウェイ</div>
+                    <div className="text-xl font-bold text-gray-900 mb-2">{matchResult.awayTeam.teamName}</div>
+                    <div className={`text-5xl font-bold ${
+                      matchResult.winner === "away" ? "text-blue-600" : "text-gray-400"
+                    }`}>
+                      {matchResult.finalScore.away}
+                    </div>
+                  </div>
                 </div>
-                <div className="text-gray-600">{gameResult.teamName}</div>
+
+                {matchResult.winner !== "tie" && (
+                  <div className="text-center mt-4 pt-4 border-t border-gray-200">
+                    <span className="text-lg font-bold text-blue-600">
+                      {matchResult.winner === "home" ? matchResult.homeTeam.teamName : matchResult.awayTeam.teamName} の勝利！
+                    </span>
+                  </div>
+                )}
+                {matchResult.winner === "tie" && (
+                  <div className="text-center mt-4 pt-4 border-t border-gray-200">
+                    <span className="text-lg font-bold text-gray-600">引き分け</span>
+                  </div>
+                )}
               </div>
 
-              <div className="grid grid-cols-3 gap-4 text-center">
+              {/* チーム統計 */}
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <div className="text-2xl font-bold text-gray-900">{gameResult.totalRuns}</div>
-                  <div className="text-sm text-gray-600">得点</div>
+                  <h3 className="text-sm font-bold text-gray-900 mb-3">{matchResult.homeTeam.teamName}</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">安打</span>
+                      <span className="font-medium text-gray-900">{matchResult.homeTeam.totalHits}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">失策</span>
+                      <span className="font-medium text-gray-900">{matchResult.homeTeam.totalErrors}</span>
+                    </div>
+                  </div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-gray-900">{gameResult.totalHits}</div>
-                  <div className="text-sm text-gray-600">安打</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-gray-900">{gameResult.totalErrors}</div>
-                  <div className="text-sm text-gray-600">失策</div>
+                  <h3 className="text-sm font-bold text-gray-900 mb-3">{matchResult.awayTeam.teamName}</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">安打</span>
+                      <span className="font-medium text-gray-900">{matchResult.awayTeam.totalHits}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">失策</span>
+                      <span className="font-medium text-gray-900">{matchResult.awayTeam.totalErrors}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -250,9 +329,10 @@ export default function SimulatePage() {
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      {gameResult.innings.map((inning) => (
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">チーム</th>
+                      {matchResult.homeTeam.innings.map((inning) => (
                         <th key={inning.inningNumber} className="px-4 py-3 text-center text-sm font-medium text-gray-900">
-                          {inning.inningNumber}回
+                          {inning.inningNumber}
                         </th>
                       ))}
                       <th className="px-4 py-3 text-center text-sm font-medium text-gray-900">
@@ -261,14 +341,26 @@ export default function SimulatePage() {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      {gameResult.innings.map((inning) => (
+                    <tr className="border-b border-gray-200">
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{matchResult.homeTeam.teamName}</td>
+                      {matchResult.homeTeam.innings.map((inning) => (
                         <td key={inning.inningNumber} className="px-4 py-3 text-center text-gray-900 font-medium">
                           {inning.runs}
                         </td>
                       ))}
                       <td className="px-4 py-3 text-center text-blue-600 font-bold">
-                        {gameResult.totalRuns}
+                        {matchResult.finalScore.home}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{matchResult.awayTeam.teamName}</td>
+                      {matchResult.awayTeam.innings.map((inning) => (
+                        <td key={inning.inningNumber} className="px-4 py-3 text-center text-gray-900 font-medium">
+                          {inning.runs}
+                        </td>
+                      ))}
+                      <td className="px-4 py-3 text-center text-blue-600 font-bold">
+                        {matchResult.finalScore.away}
                       </td>
                     </tr>
                   </tbody>
@@ -276,34 +368,44 @@ export default function SimulatePage() {
               </div>
             </div>
 
-            {/* 選手成績 */}
+            {/* ホームチーム選手成績 */}
             <Card>
-              <h3 className="text-base md:text-lg font-bold text-gray-900 mb-4">選手成績</h3>
+              <h3 className="text-base md:text-lg font-bold text-gray-900 mb-4">{matchResult.homeTeam.teamName} - 選手成績</h3>
 
               {/* Desktop Table */}
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">打順</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">選手名</th>
-                      <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">打数</th>
-                      <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">安打</th>
-                      <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">打点</th>
-                      <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">打率</th>
+                      <th className="px-3 py-3 text-left text-sm font-medium text-gray-900">打順</th>
+                      <th className="px-3 py-3 text-left text-sm font-medium text-gray-900">選手名</th>
+                      <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">打数</th>
+                      <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">安打</th>
+                      <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">2塁打</th>
+                      <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">3塁打</th>
+                      <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">本塁打</th>
+                      <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">打点</th>
+                      <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">四球</th>
+                      <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">三振</th>
+                      <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">打率</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {gameResult.playerStats
+                    {matchResult.homeTeam.playerStats
                       .sort((a, b) => a.battingOrder - b.battingOrder)
                       .map((player) => (
                         <tr key={player.playerId} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 text-sm text-gray-900">{player.battingOrder}</td>
-                          <td className="px-4 py-3 text-sm font-medium text-gray-900">{player.playerName}</td>
-                          <td className="px-4 py-3 text-sm text-gray-600 text-right">{player.atBats}</td>
-                          <td className="px-4 py-3 text-sm text-gray-600 text-right">{player.hits}</td>
-                          <td className="px-4 py-3 text-sm text-gray-600 text-right">{player.rbi}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900 text-right font-medium">
+                          <td className="px-3 py-3 text-sm text-gray-900">{player.battingOrder}</td>
+                          <td className="px-3 py-3 text-sm font-medium text-gray-900">{player.playerName}</td>
+                          <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.atBats}</td>
+                          <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.hits}</td>
+                          <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.doubles}</td>
+                          <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.triples}</td>
+                          <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.homeRuns}</td>
+                          <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.rbi}</td>
+                          <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.walks}</td>
+                          <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.strikeouts}</td>
+                          <td className="px-3 py-3 text-sm text-gray-900 text-right font-medium">
                             {formatBattingAverage(player.battingAverage)}
                           </td>
                         </tr>
@@ -314,7 +416,7 @@ export default function SimulatePage() {
 
               {/* Mobile Cards */}
               <div className="md:hidden space-y-3">
-                {gameResult.playerStats
+                {matchResult.homeTeam.playerStats
                   .sort((a, b) => a.battingOrder - b.battingOrder)
                   .map((player) => (
                     <div key={player.playerId} className="border border-gray-200 rounded-lg p-3">
@@ -326,7 +428,7 @@ export default function SimulatePage() {
                           {formatBattingAverage(player.battingAverage)}
                         </span>
                       </div>
-                      <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div className="grid grid-cols-4 gap-2 text-xs mb-2">
                         <div className="text-center">
                           <div className="font-medium text-gray-900">{player.atBats}</div>
                           <div className="text-gray-600">打数</div>
@@ -336,8 +438,123 @@ export default function SimulatePage() {
                           <div className="text-gray-600">安打</div>
                         </div>
                         <div className="text-center">
+                          <div className="font-medium text-gray-900">{player.homeRuns}</div>
+                          <div className="text-gray-600">本塁打</div>
+                        </div>
+                        <div className="text-center">
                           <div className="font-medium text-gray-900">{player.rbi}</div>
                           <div className="text-gray-600">打点</div>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-xs pt-2 border-t border-gray-200">
+                        <div className="text-center">
+                          <div className="font-medium text-gray-900">{player.doubles}</div>
+                          <div className="text-gray-600">2塁打</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="font-medium text-gray-900">{player.walks}</div>
+                          <div className="text-gray-600">四球</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="font-medium text-gray-900">{player.strikeouts}</div>
+                          <div className="text-gray-600">三振</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </Card>
+
+            {/* アウェイチーム選手成績 */}
+            <Card>
+              <h3 className="text-base md:text-lg font-bold text-gray-900 mb-4">{matchResult.awayTeam.teamName} - 選手成績</h3>
+
+              {/* Desktop Table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-3 py-3 text-left text-sm font-medium text-gray-900">打順</th>
+                      <th className="px-3 py-3 text-left text-sm font-medium text-gray-900">選手名</th>
+                      <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">打数</th>
+                      <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">安打</th>
+                      <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">2塁打</th>
+                      <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">3塁打</th>
+                      <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">本塁打</th>
+                      <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">打点</th>
+                      <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">四球</th>
+                      <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">三振</th>
+                      <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">打率</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {matchResult.awayTeam.playerStats
+                      .sort((a, b) => a.battingOrder - b.battingOrder)
+                      .map((player) => (
+                        <tr key={player.playerId} className="hover:bg-gray-50">
+                          <td className="px-3 py-3 text-sm text-gray-900">{player.battingOrder}</td>
+                          <td className="px-3 py-3 text-sm font-medium text-gray-900">{player.playerName}</td>
+                          <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.atBats}</td>
+                          <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.hits}</td>
+                          <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.doubles}</td>
+                          <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.triples}</td>
+                          <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.homeRuns}</td>
+                          <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.rbi}</td>
+                          <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.walks}</td>
+                          <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.strikeouts}</td>
+                          <td className="px-3 py-3 text-sm text-gray-900 text-right font-medium">
+                            {formatBattingAverage(player.battingAverage)}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="md:hidden space-y-3">
+                {matchResult.awayTeam.playerStats
+                  .sort((a, b) => a.battingOrder - b.battingOrder)
+                  .map((player) => (
+                    <div key={player.playerId} className="border border-gray-200 rounded-lg p-3">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-bold text-gray-900">
+                          {player.battingOrder}. {player.playerName}
+                        </span>
+                        <span className="text-sm font-bold text-blue-600">
+                          {formatBattingAverage(player.battingAverage)}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-4 gap-2 text-xs mb-2">
+                        <div className="text-center">
+                          <div className="font-medium text-gray-900">{player.atBats}</div>
+                          <div className="text-gray-600">打数</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="font-medium text-gray-900">{player.hits}</div>
+                          <div className="text-gray-600">安打</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="font-medium text-gray-900">{player.homeRuns}</div>
+                          <div className="text-gray-600">本塁打</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="font-medium text-gray-900">{player.rbi}</div>
+                          <div className="text-gray-600">打点</div>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-xs pt-2 border-t border-gray-200">
+                        <div className="text-center">
+                          <div className="font-medium text-gray-900">{player.doubles}</div>
+                          <div className="text-gray-600">2塁打</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="font-medium text-gray-900">{player.walks}</div>
+                          <div className="text-gray-600">四球</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="font-medium text-gray-900">{player.strikeouts}</div>
+                          <div className="text-gray-600">三振</div>
                         </div>
                       </div>
                     </div>

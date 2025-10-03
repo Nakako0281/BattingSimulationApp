@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { getSimulationResults } from "@/lib/supabase/simulation-results";
+import { getMatchSimulationResults } from "@/lib/supabase/simulation-results";
 
 /**
  * GET /api/simulate/history
@@ -17,7 +17,7 @@ export async function GET() {
       );
     }
 
-    const { data, error } = await getSimulationResults(session.user.id);
+    const { data, error } = await getMatchSimulationResults(session.user.id);
 
     if (error) {
       return NextResponse.json(

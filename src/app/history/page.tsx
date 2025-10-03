@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import EmptyState from "@/components/ui/EmptyState";
 import Card from "@/components/ui/Card";
-import type { SimulationResultWithTeam } from "@/types/database";
+import type { SimulationResultWithTeams } from "@/types/database";
 
 export default function HistoryPage() {
   const router = useRouter();
-  const [results, setResults] = useState<SimulationResultWithTeam[]>([]);
+  const [results, setResults] = useState<SimulationResultWithTeams[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -104,7 +104,7 @@ export default function HistoryPage() {
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-0 mb-4">
                   <div>
                     <h3 className="text-base md:text-lg font-bold text-gray-900">
-                      {result.team.name}
+                      {result.homeTeam.name}
                     </h3>
                     <p className="text-xs md:text-sm text-gray-600">
                       {formatDate(result.created_at)}
@@ -128,21 +128,21 @@ export default function HistoryPage() {
                     <>
                       <div className="text-center">
                         <div className="text-xl md:text-2xl font-bold text-blue-600">
-                          {result.total_runs}
+                          {result.home_runs}
                         </div>
-                        <div className="text-xs md:text-sm text-gray-600">得点</div>
+                        <div className="text-xs md:text-sm text-gray-600">ホーム得点</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-xl md:text-2xl font-bold text-red-600">
+                          {result.away_runs}
+                        </div>
+                        <div className="text-xs md:text-sm text-gray-600">アウェイ得点</div>
                       </div>
                       <div className="text-center">
                         <div className="text-xl md:text-2xl font-bold text-gray-900">
-                          {result.total_hits}
+                          {result.home_hits}
                         </div>
                         <div className="text-xs md:text-sm text-gray-600">安打</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-xl md:text-2xl font-bold text-gray-900">
-                          {result.total_errors}
-                        </div>
-                        <div className="text-xs md:text-sm text-gray-600">失策</div>
                       </div>
                       <div className="text-center">
                         <div className="text-xl md:text-2xl font-bold text-gray-900">
@@ -155,23 +155,23 @@ export default function HistoryPage() {
                     <>
                       <div className="text-center">
                         <div className="text-xl md:text-2xl font-bold text-blue-600">
-                          {result.wins}
+                          {result.home_wins}
                         </div>
-                        <div className="text-xs md:text-sm text-gray-600">勝</div>
+                        <div className="text-xs md:text-sm text-gray-600">ホーム勝</div>
                       </div>
                       <div className="text-center">
                         <div className="text-xl md:text-2xl font-bold text-red-600">
-                          {result.losses}
+                          {result.home_losses}
                         </div>
-                        <div className="text-xs md:text-sm text-gray-600">敗</div>
+                        <div className="text-xs md:text-sm text-gray-600">ホーム敗</div>
                       </div>
                       <div className="text-center">
                         <div className="text-xl md:text-2xl font-bold text-green-600">
-                          {result.wins && result.games_played
-                            ? ((result.wins / result.games_played) * 100).toFixed(1)
+                          {result.home_wins && result.games_played
+                            ? ((result.home_wins / result.games_played) * 100).toFixed(1)
                             : "0.0"}%
                         </div>
-                        <div className="text-xs md:text-sm text-gray-600">勝率</div>
+                        <div className="text-xs md:text-sm text-gray-600">ホーム勝率</div>
                       </div>
                       <div className="text-center">
                         <div className="text-xl md:text-2xl font-bold text-gray-900">

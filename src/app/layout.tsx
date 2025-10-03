@@ -6,6 +6,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import ErrorBoundary from "@/components/error/ErrorBoundary";
 import Header from "@/components/layout/Header";
+import ToastContainer from "@/components/ui/Toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -33,6 +34,7 @@ export default function RootLayout({
                 <main id="main-content">
                   {children}
                 </main>
+                <ToastContainer />
               </ToastProvider>
             </AuthProvider>
           </SessionProvider>

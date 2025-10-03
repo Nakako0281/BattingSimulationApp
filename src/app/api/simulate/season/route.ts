@@ -1,18 +1,19 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getTeamWithPlayers } from "@/lib/supabase/teams";
-import { simulateSeason } from "@/lib/simulation/season";
+import { simulateMatchSeason } from "@/lib/simulation/season";
 import { z } from "zod";
 
 const simulateSeasonSchema = z.object({
-  teamId: z.string().uuid(),
+  homeTeamId: z.string().uuid(),
+  awayTeamId: z.string().uuid(),
   numberOfGames: z.number().int().min(1).max(162).default(10),
   innings: z.number().int().min(1).max(15).default(9),
 });
 
 /**
  * POST /api/simulate/season
- * Run a season simulation (multiple games)
+ * Run a season simulation between two teams (multiple matches)
  */
 export async function POST(request: Request) {
   try {
@@ -26,31 +27,63 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { teamId, numberOfGames, innings } = simulateSeasonSchema.parse(body);
+    const { homeTeamId, awayTeamId, numberOfGames, innings } = simulateSeasonSchema.parse(body);
 
-    // Get team with players
-    const { data: team, error } = await getTeamWithPlayers(teamId, session.user.id);
-
-    if (error || !team) {
+    // Validate teams are different
+    if (homeTeamId === awayTeamId) {
       return NextResponse.json(
-        { success: false, error: error || "Team not found" },
+        { success: false, error: "Home and away teams must be different" },
+        { status: 400 }
+      );
+    }
+
+    // Get home team with players
+    const { data: homeTeam, error: homeError } = await getTeamWithPlayers(
+      homeTeamId,
+      session.user.id
+    );
+
+    if (homeError || !homeTeam) {
+      return NextResponse.json(
+        { success: false, error: homeError || "Home team not found" },
         { status: 404 }
       );
     }
 
-    // Check if team has players
-    if (team.players.length === 0) {
+    // Get away team with players
+    const { data: awayTeam, error: awayError } = await getTeamWithPlayers(
+      awayTeamId,
+      session.user.id
+    );
+
+    if (awayError || !awayTeam) {
       return NextResponse.json(
-        { success: false, error: "Team has no players" },
+        { success: false, error: awayError || "Away team not found" },
+        { status: 404 }
+      );
+    }
+
+    // Check if teams have players
+    if (homeTeam.players.length === 0) {
+      return NextResponse.json(
+        { success: false, error: "Home team has no players" },
+        { status: 400 }
+      );
+    }
+
+    if (awayTeam.players.length === 0) {
+      return NextResponse.json(
+        { success: false, error: "Away team has no players" },
         { status: 400 }
       );
     }
 
     // Run season simulation
-    const result = simulateSeason(
-      team.id,
-      team.name,
-      team.players,
+    const result = simulateMatchSeason(
+      homeTeam,
+      homeTeam.players,
+      awayTeam,
+      awayTeam.players,
       numberOfGames,
       innings
     );
@@ -59,7 +92,7 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { success: false, error: "Invalid input", details: error.errors },
+        { success: false, error: "Invalid input", details: error.issues },
         { status: 400 }
       );
     }

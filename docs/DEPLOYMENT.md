@@ -1,23 +1,23 @@
-# Deployment Guide
+# デプロイメントガイド / Deployment Guide
 
-This guide covers deploying the Baseball Batting Simulator to production.
+野球打撃シミュレーターを本番環境にデプロイする手順です。
 
-## Prerequisites
+## 事前準備
 
-- Node.js 18+ installed
-- Supabase project configured
-- Git repository
-- Deployment platform account (Vercel recommended)
+- Node.js 18以上
+- Supabaseプロジェクト設定済み
+- Gitリポジトリ
+- デプロイプラットフォームアカウント（Vercel推奨）
 
-## Pre-Deployment Checklist
+## デプロイ前チェックリスト
 
-- [ ] All tests passing
-- [ ] Environment variables documented
-- [ ] Database migrations applied
-- [ ] Build succeeds locally
-- [ ] No console errors in production build
-- [ ] Accessibility audit passed
-- [ ] Performance metrics acceptable
+- [ ] 全てのテストが成功 (`npm test`)
+- [ ] ビルドがローカルで成功 (`npm run build`)
+- [ ] 環境変数が `.env.example` に文書化
+- [ ] Supabaseマイグレーション実行済み
+- [ ] 本番ビルドでコンソールエラーなし
+- [ ] アクセシビリティ監査合格
+- [ ] パフォーマンス指標が許容範囲
 
 ## Deploying to Vercel (Recommended)
 

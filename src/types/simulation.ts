@@ -69,6 +69,10 @@ export interface PlayerGameStats {
   battingOrder: number;
   atBats: number;
   hits: number;
+  singles: number;
+  doubles: number;
+  triples: number;
+  homeRuns: number;
   runs: number;
   rbi: number;
   walks: number;
