@@ -37,11 +37,6 @@ export interface Player {
   walks: number;
   at_bats: number;
 
-  // Deprecated fields (kept for backward compatibility)
-  strikeouts?: number;
-  groundouts?: number;
-  flyouts?: number;
-
   created_at: string;
   updated_at: string;
 }
@@ -68,10 +63,6 @@ export interface CreatePlayerInput {
   home_runs?: number;
   walks?: number;
   at_bats?: number;
-  // Deprecated - no longer used
-  strikeouts?: number;
-  groundouts?: number;
-  flyouts?: number;
 }
 
 export interface UpdatePlayerInput {
@@ -83,10 +74,6 @@ export interface UpdatePlayerInput {
   home_runs?: number;
   walks?: number;
   at_bats?: number;
-  // Deprecated - no longer used
-  strikeouts?: number;
-  groundouts?: number;
-  flyouts?: number;
 }
 
 // ============================================
@@ -147,9 +134,7 @@ export interface BattingStats {
   triples: number;
   home_runs: number;
   walks: number;
-  strikeouts: number;
-  groundouts: number;
-  flyouts: number;
+  outs: number; // Calculated as: at_bats - hits
 
   // Calculated stats
   batting_average: number; // hits / at_bats

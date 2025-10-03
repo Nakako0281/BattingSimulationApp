@@ -386,7 +386,7 @@ export default function SimulatePage() {
                       <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">本塁打</th>
                       <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">打点</th>
                       <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">四球</th>
-                      <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">三振</th>
+                      <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">アウト</th>
                       <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">打率</th>
                     </tr>
                   </thead>
@@ -404,7 +404,7 @@ export default function SimulatePage() {
                           <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.homeRuns}</td>
                           <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.rbi}</td>
                           <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.walks}</td>
-                          <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.strikeouts}</td>
+                          <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.outs}</td>
                           <td className="px-3 py-3 text-sm text-gray-900 text-right font-medium">
                             {formatBattingAverage(player.battingAverage)}
                           </td>
@@ -456,8 +456,8 @@ export default function SimulatePage() {
                           <div className="text-gray-600">四球</div>
                         </div>
                         <div className="text-center">
-                          <div className="font-medium text-gray-900">{player.strikeouts}</div>
-                          <div className="text-gray-600">三振</div>
+                          <div className="font-medium text-gray-900">{player.outs}</div>
+                          <div className="text-gray-600">アウト</div>
                         </div>
                       </div>
                     </div>
@@ -483,7 +483,7 @@ export default function SimulatePage() {
                       <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">本塁打</th>
                       <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">打点</th>
                       <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">四球</th>
-                      <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">三振</th>
+                      <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">アウト</th>
                       <th className="px-3 py-3 text-right text-sm font-medium text-gray-900">打率</th>
                     </tr>
                   </thead>
@@ -501,7 +501,7 @@ export default function SimulatePage() {
                           <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.homeRuns}</td>
                           <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.rbi}</td>
                           <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.walks}</td>
-                          <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.strikeouts}</td>
+                          <td className="px-3 py-3 text-sm text-gray-600 text-right">{player.outs}</td>
                           <td className="px-3 py-3 text-sm text-gray-900 text-right font-medium">
                             {formatBattingAverage(player.battingAverage)}
                           </td>
@@ -553,8 +553,8 @@ export default function SimulatePage() {
                           <div className="text-gray-600">四球</div>
                         </div>
                         <div className="text-center">
-                          <div className="font-medium text-gray-900">{player.strikeouts}</div>
-                          <div className="text-gray-600">三振</div>
+                          <div className="font-medium text-gray-900">{player.outs}</div>
+                          <div className="text-gray-600">アウト</div>
                         </div>
                       </div>
                     </div>

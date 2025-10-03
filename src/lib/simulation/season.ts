@@ -80,7 +80,7 @@ function aggregateSeasonStats(games: any[], players: Player[]): SeasonStats {
       runs: 0,
       rbi: 0,
       walks: 0,
-      strikeouts: 0,
+      outs: 0,
     });
   });
 
@@ -125,7 +125,7 @@ function aggregateSeasonStats(games: any[], players: Player[]): SeasonStats {
             stats.walks++;
             break;
           case "out":
-            stats.strikeouts++; // Track outs as strikeouts for compatibility
+            stats.outs++;
             break;
         }
 
@@ -345,7 +345,7 @@ function aggregateTeamStats(games: any[], team: Team, players: Player[]): TeamSe
       runs: 0,
       rbi: 0,
       walks: 0,
-      strikeouts: 0,
+      outs: 0,
     });
   });
 
@@ -390,7 +390,7 @@ function aggregateTeamStats(games: any[], team: Team, players: Player[]): TeamSe
             stats.walks++;
             break;
           case "out":
-            stats.strikeouts++; // Track outs as strikeouts for compatibility
+            stats.outs++;
             break;
         }
 

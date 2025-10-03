@@ -14,10 +14,7 @@ export function calculatePlayerProbabilities(player: Player): PlayerProbabilitie
   const totalPositiveOutcomes = hits + player.walks;
 
   // Calculate outs from at_bats minus hits
-  // If deprecated fields exist, use them; otherwise calculate from at_bats
-  const outs = player.at_bats > 0
-    ? player.at_bats - hits
-    : (player.strikeouts || 0) + (player.groundouts || 0) + (player.flyouts || 0);
+  const outs = player.at_bats - hits;
 
   const totalOutcomes = totalPositiveOutcomes + outs;
 

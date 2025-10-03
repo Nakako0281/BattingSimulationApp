@@ -74,7 +74,7 @@ export interface PlayerGameStats {
   runs: number;
   rbi: number;
   walks: number;
-  strikeouts: number;
+  outs: number; // at_bats - hits
   battingAverage: number;
 }
 
@@ -137,7 +137,7 @@ export interface PlayerSeasonStats {
   runs: number;
   rbi: number;
   walks: number;
-  strikeouts: number;
+  outs: number; // at_bats - hits
   battingAverage: number;
   onBasePercentage: number;
   sluggingPercentage: number;

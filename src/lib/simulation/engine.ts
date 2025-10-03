@@ -257,7 +257,7 @@ export function simulateGame(
           runs: 0,
           rbi: 0,
           walks: 0,
-          strikeouts: 0, // Kept for compatibility with PlayerGameStats type
+          outs: 0,
         });
       }
 
@@ -294,9 +294,8 @@ export function simulateGame(
         stats.walks++;
       }
 
-      // Simplified: track outs as strikeouts for compatibility
       if (atBat.outcome === "out") {
-        stats.strikeouts++;
+        stats.outs++;
       }
     });
   });

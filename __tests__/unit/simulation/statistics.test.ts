@@ -138,12 +138,14 @@ describe("Statistics Calculations", () => {
       });
     });
 
-    it("should track strikeouts correctly", () => {
+    it("should track outs correctly", () => {
       const gameResult = simulateGame("team-1", "Test Team", mockPlayers, 9);
 
       gameResult.playerStats.forEach((stats) => {
-        expect(stats.strikeouts).toBeGreaterThanOrEqual(0);
-        expect(typeof stats.strikeouts).toBe("number");
+        expect(stats.outs).toBeGreaterThanOrEqual(0);
+        expect(typeof stats.outs).toBe("number");
+        // Outs should be at_bats - hits
+        expect(stats.outs).toBe(stats.atBats - stats.hits);
       });
     });
 

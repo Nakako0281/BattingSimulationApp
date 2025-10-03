@@ -26,9 +26,6 @@ export default function PlayerForm({
     triples: player?.triples || 0,
     home_runs: player?.home_runs || 0,
     walks: player?.walks || 0,
-    strikeouts: player?.strikeouts || 0,
-    groundouts: player?.groundouts || 0,
-    flyouts: player?.flyouts || 0,
     at_bats: player?.at_bats || 0,
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -49,16 +46,6 @@ export default function PlayerForm({
     const warnings: string[] = [];
 
     // 打数と結果の整合性チェック
-    const totalOutcomes =
-      formData.singles +
-      formData.doubles +
-      formData.triples +
-      formData.home_runs +
-      formData.walks +
-      formData.strikeouts +
-      formData.groundouts +
-      formData.flyouts;
-
     const hits = formData.singles + formData.doubles + formData.triples + formData.home_runs;
 
     // 安打数が打数を超えていないかチェック
@@ -67,7 +54,7 @@ export default function PlayerForm({
     }
 
     // 統計の整合性の推奨チェック（警告のみ）
-    if (formData.at_bats > 0 && totalOutcomes === 0) {
+    if (formData.at_bats > 0 && hits === 0 && formData.walks === 0) {
       warnings.push("打数が設定されていますが、結果が入力されていません");
     }
 

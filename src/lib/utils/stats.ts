@@ -74,6 +74,8 @@ export function calculatePlayerStats(player: Player): BattingStats {
   );
   const ops = calculateOPS(onBasePercentage, sluggingPercentage);
 
+  const outs = player.at_bats - hits;
+
   return {
     at_bats: player.at_bats,
     hits,
@@ -82,9 +84,7 @@ export function calculatePlayerStats(player: Player): BattingStats {
     triples: player.triples,
     home_runs: player.home_runs,
     walks: player.walks,
-    strikeouts: player.strikeouts ?? 0, // Deprecated field, default to 0
-    groundouts: player.groundouts ?? 0, // Deprecated field, default to 0
-    flyouts: player.flyouts ?? 0, // Deprecated field, default to 0
+    outs, // Calculated as at_bats - hits
     batting_average: battingAverage,
     on_base_percentage: onBasePercentage,
     slugging_percentage: sluggingPercentage,
@@ -133,9 +133,6 @@ export function calculateTeamStats(players: Player[]): BattingStats {
       triples: acc.triples + player.triples,
       home_runs: acc.home_runs + player.home_runs,
       walks: acc.walks + player.walks,
-      strikeouts: acc.strikeouts + (player.strikeouts ?? 0), // Deprecated field
-      groundouts: acc.groundouts + (player.groundouts ?? 0), // Deprecated field
-      flyouts: acc.flyouts + (player.flyouts ?? 0), // Deprecated field
     }),
     {
       at_bats: 0,
@@ -144,9 +141,6 @@ export function calculateTeamStats(players: Player[]): BattingStats {
       triples: 0,
       home_runs: 0,
       walks: 0,
-      strikeouts: 0,
-      groundouts: 0,
-      flyouts: 0,
     }
   );
 
@@ -170,10 +164,12 @@ export function calculateTeamStats(players: Player[]): BattingStats {
     totalStats.at_bats
   );
   const ops = calculateOPS(onBasePercentage, sluggingPercentage);
+  const outs = totalStats.at_bats - hits;
 
   return {
     ...totalStats,
     hits,
+    outs, // Calculated as at_bats - hits
     batting_average: battingAverage,
     on_base_percentage: onBasePercentage,
     slugging_percentage: sluggingPercentage,
