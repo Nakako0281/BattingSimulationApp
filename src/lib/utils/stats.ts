@@ -82,9 +82,9 @@ export function calculatePlayerStats(player: Player): BattingStats {
     triples: player.triples,
     home_runs: player.home_runs,
     walks: player.walks,
-    strikeouts: player.strikeouts,
-    groundouts: player.groundouts,
-    flyouts: player.flyouts,
+    strikeouts: player.strikeouts ?? 0, // Deprecated field, default to 0
+    groundouts: player.groundouts ?? 0, // Deprecated field, default to 0
+    flyouts: player.flyouts ?? 0, // Deprecated field, default to 0
     batting_average: battingAverage,
     on_base_percentage: onBasePercentage,
     slugging_percentage: sluggingPercentage,
@@ -133,9 +133,9 @@ export function calculateTeamStats(players: Player[]): BattingStats {
       triples: acc.triples + player.triples,
       home_runs: acc.home_runs + player.home_runs,
       walks: acc.walks + player.walks,
-      strikeouts: acc.strikeouts + player.strikeouts,
-      groundouts: acc.groundouts + player.groundouts,
-      flyouts: acc.flyouts + player.flyouts,
+      strikeouts: acc.strikeouts + (player.strikeouts ?? 0), // Deprecated field
+      groundouts: acc.groundouts + (player.groundouts ?? 0), // Deprecated field
+      flyouts: acc.flyouts + (player.flyouts ?? 0), // Deprecated field
     }),
     {
       at_bats: 0,
