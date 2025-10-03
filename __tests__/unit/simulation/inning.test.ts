@@ -85,9 +85,7 @@ describe("Inning Simulation", () => {
         "triple",
         "home_run",
         "walk",
-        "strikeout",
-        "groundout",
-        "flyout",
+        "out", // Simplified: single out outcome
       ];
 
       result.atBats.forEach((atBat) => {
@@ -175,10 +173,10 @@ describe("Inning Simulation", () => {
       const { result } = simulateInning(mockTeam, 1, 1);
 
       const outs = result.atBats.filter((ab) =>
-        ["strikeout", "groundout", "flyout"].includes(ab.outcome)
+        ab.outcome === "out"
       ).length;
 
-      // At least 3 outs should be present
+      // At least 3 outs should be present (inning ends at 3 outs)
       expect(outs).toBeGreaterThanOrEqual(3);
     });
   });

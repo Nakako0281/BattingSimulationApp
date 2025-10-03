@@ -14,9 +14,7 @@ export type OutcomeType =
   | "triple"
   | "home_run"
   | "walk"
-  | "strikeout"
-  | "groundout"
-  | "flyout";
+  | "out"; // Simplified: no distinction between strikeout/groundout/flyout
 
 export interface AtBatResult {
   playerId: string;
@@ -157,9 +155,7 @@ export interface PlayerProbabilities {
   triple: number;
   homeRun: number;
   walk: number;
-  strikeout: number;
-  groundout: number;
-  flyout: number;
+  out: number; // Simplified: single out probability (no strikeout/groundout/flyout distinction)
 }
 
 export interface TeamProbabilities {

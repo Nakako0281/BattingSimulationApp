@@ -35,10 +35,12 @@ export interface Player {
   triples: number;
   home_runs: number;
   walks: number;
-  strikeouts: number;
-  groundouts: number;
-  flyouts: number;
   at_bats: number;
+
+  // Deprecated fields (kept for backward compatibility)
+  strikeouts?: number;
+  groundouts?: number;
+  flyouts?: number;
 
   created_at: string;
   updated_at: string;
@@ -65,10 +67,11 @@ export interface CreatePlayerInput {
   triples?: number;
   home_runs?: number;
   walks?: number;
+  at_bats?: number;
+  // Deprecated - no longer used
   strikeouts?: number;
   groundouts?: number;
   flyouts?: number;
-  at_bats?: number;
 }
 
 export interface UpdatePlayerInput {
@@ -79,10 +82,11 @@ export interface UpdatePlayerInput {
   triples?: number;
   home_runs?: number;
   walks?: number;
+  at_bats?: number;
+  // Deprecated - no longer used
   strikeouts?: number;
   groundouts?: number;
   flyouts?: number;
-  at_bats?: number;
 }
 
 // ============================================

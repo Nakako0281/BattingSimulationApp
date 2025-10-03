@@ -130,9 +130,7 @@ function processAtBat(
       newBases.first = true;
       break;
 
-    case "strikeout":
-    case "groundout":
-    case "flyout":
+    case "out":
       newOuts++;
       // No runners advance on outs
       break;
@@ -259,7 +257,7 @@ export function simulateGame(
           runs: 0,
           rbi: 0,
           walks: 0,
-          strikeouts: 0,
+          strikeouts: 0, // Kept for compatibility with PlayerGameStats type
         });
       }
 
@@ -296,7 +294,8 @@ export function simulateGame(
         stats.walks++;
       }
 
-      if (atBat.outcome === "strikeout") {
+      // Simplified: track outs as strikeouts for compatibility
+      if (atBat.outcome === "out") {
         stats.strikeouts++;
       }
     });

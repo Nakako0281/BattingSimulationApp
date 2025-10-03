@@ -16,9 +16,7 @@ describe("Probability Calculations", () => {
     triples: 5,
     home_runs: 20,
     walks: 40,
-    strikeouts: 80,
-    groundouts: 100,
-    flyouts: 125,
+    at_bats: 500, // Total at bats
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     team_id: "team-1",
@@ -28,15 +26,15 @@ describe("Probability Calculations", () => {
     it("should calculate correct probabilities for player with statistics", () => {
       const probabilities = calculatePlayerProbabilities(mockPlayer);
 
+      // Total outcomes: hits (155) + walks (40) + outs (345) = 540
+      // Outs = at_bats (500) - hits (155) = 345
       expect(probabilities.playerId).toBe(mockPlayer.id);
-      expect(probabilities.single).toBeCloseTo(0.2, 2); // 100/500
-      expect(probabilities.double).toBeCloseTo(0.06, 2); // 30/500
-      expect(probabilities.triple).toBeCloseTo(0.01, 2); // 5/500
-      expect(probabilities.homeRun).toBeCloseTo(0.04, 2); // 20/500
-      expect(probabilities.walk).toBeCloseTo(0.08, 2); // 40/500
-      expect(probabilities.strikeout).toBeCloseTo(0.16, 2); // 80/500
-      expect(probabilities.groundout).toBeCloseTo(0.2, 2); // 100/500
-      expect(probabilities.flyout).toBeCloseTo(0.25, 2); // 125/500
+      expect(probabilities.single).toBeCloseTo(100 / 540, 2);
+      expect(probabilities.double).toBeCloseTo(30 / 540, 2);
+      expect(probabilities.triple).toBeCloseTo(5 / 540, 2);
+      expect(probabilities.homeRun).toBeCloseTo(20 / 540, 2);
+      expect(probabilities.walk).toBeCloseTo(40 / 540, 2);
+      expect(probabilities.out).toBeCloseTo(345 / 540, 2); // Single out probability
     });
 
     it("should return default probabilities for player with no statistics", () => {
@@ -47,9 +45,7 @@ describe("Probability Calculations", () => {
         triples: 0,
         home_runs: 0,
         walks: 0,
-        strikeouts: 0,
-        groundouts: 0,
-        flyouts: 0,
+        at_bats: 0,
       };
 
       const probabilities = calculatePlayerProbabilities(emptyPlayer);
@@ -59,9 +55,7 @@ describe("Probability Calculations", () => {
       expect(probabilities.triple).toBe(0.01);
       expect(probabilities.homeRun).toBe(0.03);
       expect(probabilities.walk).toBe(0.08);
-      expect(probabilities.strikeout).toBe(0.20);
-      expect(probabilities.groundout).toBe(0.24);
-      expect(probabilities.flyout).toBe(0.24);
+      expect(probabilities.out).toBe(0.68); // Combined out probability
     });
 
     it("should have probabilities sum to approximately 1", () => {
@@ -72,9 +66,7 @@ describe("Probability Calculations", () => {
         probabilities.triple +
         probabilities.homeRun +
         probabilities.walk +
-        probabilities.strikeout +
-        probabilities.groundout +
-        probabilities.flyout;
+        probabilities.out;
 
       expect(sum).toBeCloseTo(1, 2);
     });
@@ -88,9 +80,7 @@ describe("Probability Calculations", () => {
       triple: 0.05,
       homeRun: 0.05,
       walk: 0.1,
-      strikeout: 0.2,
-      groundout: 0.15,
-      flyout: 0.15,
+      out: 0.5, // Simplified single out probability
     };
 
     it("should return single for random value in single range", () => {
@@ -117,22 +107,16 @@ describe("Probability Calculations", () => {
       expect(outcome).toBe("walk");
     });
 
-    it("should return strikeout for random value in strikeout range", () => {
-      jest.spyOn(Math, "random").mockReturnValue(0.65); // Within strikeout range (0.5-0.7)
+    it("should return out for random value in out range", () => {
+      jest.spyOn(Math, "random").mockReturnValue(0.65); // Within out range (0.5-1.0)
       const outcome = determineOutcome(testProbabilities);
-      expect(outcome).toBe("strikeout");
+      expect(outcome).toBe("out");
     });
 
-    it("should return groundout for random value in groundout range", () => {
-      jest.spyOn(Math, "random").mockReturnValue(0.8); // Within groundout range (0.7-0.85)
+    it("should return out for random value at end of range", () => {
+      jest.spyOn(Math, "random").mockReturnValue(0.95); // Within out range (0.5-1.0)
       const outcome = determineOutcome(testProbabilities);
-      expect(outcome).toBe("groundout");
-    });
-
-    it("should return flyout for random value at end of range", () => {
-      jest.spyOn(Math, "random").mockReturnValue(0.95); // Within flyout range (0.85-1.0)
-      const outcome = determineOutcome(testProbabilities);
-      expect(outcome).toBe("flyout");
+      expect(outcome).toBe("out");
     });
 
     afterEach(() => {
@@ -150,9 +134,7 @@ describe("Probability Calculations", () => {
         triples: 5,
         home_runs: 20,
         walks: 40,
-        strikeouts: 80,
-        groundouts: 100,
-        flyouts: 125,
+        at_bats: 500,
       },
       {
         ...mockPlayer,
@@ -162,9 +144,7 @@ describe("Probability Calculations", () => {
         triples: 3,
         home_runs: 15,
         walks: 50,
-        strikeouts: 90,
-        groundouts: 110,
-        flyouts: 87,
+        at_bats: 550,
       },
     ];
 
@@ -191,9 +171,7 @@ describe("Probability Calculations", () => {
         teamProbs.triple +
         teamProbs.homeRun +
         teamProbs.walk +
-        teamProbs.strikeout +
-        teamProbs.groundout +
-        teamProbs.flyout;
+        teamProbs.out;
 
       expect(sum).toBeCloseTo(1, 2);
     });

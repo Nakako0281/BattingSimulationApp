@@ -59,6 +59,7 @@ export type CreateTeamInput = z.infer<typeof createTeamSchema>;
 
 /**
  * 選手作成のバリデーションスキーマ
+ * Note: strikeouts, groundouts, flyouts are deprecated and no longer required
  */
 export const createPlayerSchema = z
   .object({
@@ -77,10 +78,11 @@ export const createPlayerSchema = z
     triples: z.number().int().min(0, "三塁打は0以上である必要があります").default(0),
     home_runs: z.number().int().min(0, "本塁打は0以上である必要があります").default(0),
     walks: z.number().int().min(0, "四球は0以上である必要があります").default(0),
-    strikeouts: z.number().int().min(0, "三振は0以上である必要があります").default(0),
-    groundouts: z.number().int().min(0, "ゴロアウトは0以上である必要があります").default(0),
-    flyouts: z.number().int().min(0, "フライアウトは0以上である必要があります").default(0),
     at_bats: z.number().int().min(0, "打数は0以上である必要があります").default(0),
+    // Deprecated fields - kept for backward compatibility
+    strikeouts: z.number().int().min(0).default(0).optional(),
+    groundouts: z.number().int().min(0).default(0).optional(),
+    flyouts: z.number().int().min(0).default(0).optional(),
   })
   .refine(
     (data) => {
@@ -95,6 +97,7 @@ export const createPlayerSchema = z
 
 /**
  * 選手更新のバリデーションスキーマ
+ * Note: strikeouts, groundouts, flyouts are deprecated and no longer used
  */
 export const updatePlayerSchema = z.object({
   name: z
@@ -113,10 +116,11 @@ export const updatePlayerSchema = z.object({
   triples: z.number().int().min(0, "三塁打は0以上である必要があります").optional(),
   home_runs: z.number().int().min(0, "本塁打は0以上である必要があります").optional(),
   walks: z.number().int().min(0, "四球は0以上である必要があります").optional(),
-  strikeouts: z.number().int().min(0, "三振は0以上である必要があります").optional(),
-  groundouts: z.number().int().min(0, "ゴロアウトは0以上である必要があります").optional(),
-  flyouts: z.number().int().min(0, "フライアウトは0以上である必要があります").optional(),
   at_bats: z.number().int().min(0, "打数は0以上である必要があります").optional(),
+  // Deprecated fields - kept for backward compatibility
+  strikeouts: z.number().int().min(0).optional(),
+  groundouts: z.number().int().min(0).optional(),
+  flyouts: z.number().int().min(0).optional(),
 });
 
 export type CreatePlayerInput = z.infer<typeof createPlayerSchema>;

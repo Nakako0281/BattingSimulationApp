@@ -124,8 +124,8 @@ function aggregateSeasonStats(games: any[], players: Player[]): SeasonStats {
           case "walk":
             stats.walks++;
             break;
-          case "strikeout":
-            stats.strikeouts++;
+          case "out":
+            stats.strikeouts++; // Track outs as strikeouts for compatibility
             break;
         }
 
@@ -389,8 +389,8 @@ function aggregateTeamStats(games: any[], team: Team, players: Player[]): TeamSe
           case "walk":
             stats.walks++;
             break;
-          case "strikeout":
-            stats.strikeouts++;
+          case "out":
+            stats.strikeouts++; // Track outs as strikeouts for compatibility
             break;
         }
 

@@ -6,17 +6,20 @@ import type { Player, PlayerProbabilities } from "@/types";
 
 /**
  * Calculate outcome probabilities for a player based on their statistics
+ * Note: Simplified approach - no distinction between strikeout/groundout/flyout
  */
 export function calculatePlayerProbabilities(player: Player): PlayerProbabilities {
-  const totalOutcomes =
-    player.singles +
-    player.doubles +
-    player.triples +
-    player.home_runs +
-    player.walks +
-    player.strikeouts +
-    player.groundouts +
-    player.flyouts;
+  // Calculate total positive outcomes (hits and walks)
+  const hits = player.singles + player.doubles + player.triples + player.home_runs;
+  const totalPositiveOutcomes = hits + player.walks;
+
+  // Calculate outs from at_bats minus hits
+  // If deprecated fields exist, use them; otherwise calculate from at_bats
+  const outs = player.at_bats > 0
+    ? player.at_bats - hits
+    : (player.strikeouts || 0) + (player.groundouts || 0) + (player.flyouts || 0);
+
+  const totalOutcomes = totalPositiveOutcomes + outs;
 
   // If no data, return default probabilities
   if (totalOutcomes === 0) {
@@ -27,9 +30,7 @@ export function calculatePlayerProbabilities(player: Player): PlayerProbabilitie
       triple: 0.01,
       homeRun: 0.03,
       walk: 0.08,
-      strikeout: 0.20,
-      groundout: 0.24,
-      flyout: 0.24,
+      out: 0.68, // Combined out probability (20% + 24% + 24%)
     };
   }
 
@@ -41,9 +42,7 @@ export function calculatePlayerProbabilities(player: Player): PlayerProbabilitie
     triple: player.triples / totalOutcomes,
     homeRun: player.home_runs / totalOutcomes,
     walk: player.walks / totalOutcomes,
-    strikeout: player.strikeouts / totalOutcomes,
-    groundout: player.groundouts / totalOutcomes,
-    flyout: player.flyouts / totalOutcomes,
+    out: outs / totalOutcomes,
   };
 }
 
@@ -70,14 +69,8 @@ export function determineOutcome(probabilities: PlayerProbabilities): string {
   cumulative += probabilities.walk;
   if (random < cumulative) return "walk";
 
-  cumulative += probabilities.strikeout;
-  if (random < cumulative) return "strikeout";
-
-  cumulative += probabilities.groundout;
-  if (random < cumulative) return "groundout";
-
-  // Default to flyout if nothing else matches
-  return "flyout";
+  // Default to out if nothing else matches
+  return "out";
 }
 
 /**
@@ -98,9 +91,7 @@ export function calculateTeamProbabilities(players: Player[]): PlayerProbabiliti
     triple: 0,
     homeRun: 0,
     walk: 0,
-    strikeout: 0,
-    groundout: 0,
-    flyout: 0,
+    out: 0,
   };
 
   allProbabilities.forEach((prob) => {
@@ -109,9 +100,7 @@ export function calculateTeamProbabilities(players: Player[]): PlayerProbabiliti
     avgProbabilities.triple += prob.triple;
     avgProbabilities.homeRun += prob.homeRun;
     avgProbabilities.walk += prob.walk;
-    avgProbabilities.strikeout += prob.strikeout;
-    avgProbabilities.groundout += prob.groundout;
-    avgProbabilities.flyout += prob.flyout;
+    avgProbabilities.out += prob.out;
   });
 
   const count = allProbabilities.length;
@@ -120,9 +109,7 @@ export function calculateTeamProbabilities(players: Player[]): PlayerProbabiliti
   avgProbabilities.triple /= count;
   avgProbabilities.homeRun /= count;
   avgProbabilities.walk /= count;
-  avgProbabilities.strikeout /= count;
-  avgProbabilities.groundout /= count;
-  avgProbabilities.flyout /= count;
+  avgProbabilities.out /= count;
 
   return avgProbabilities;
 }

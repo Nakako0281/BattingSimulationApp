@@ -306,55 +306,9 @@ export default function PlayerForm({
             min="0"
           />
         </div>
-
-        <div>
-          <label htmlFor="strikeouts" className="block text-sm font-medium mb-2">
-            三振
-          </label>
-          <input
-            id="strikeouts"
-            name="strikeouts"
-            type="number"
-            value={formData.strikeouts}
-            onChange={handleChange}
-            disabled={isLoading}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 disabled:bg-gray-100"
-            min="0"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="groundouts" className="block text-sm font-medium mb-2">
-            ゴロアウト
-          </label>
-          <input
-            id="groundouts"
-            name="groundouts"
-            type="number"
-            value={formData.groundouts}
-            onChange={handleChange}
-            disabled={isLoading}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 disabled:bg-gray-100"
-            min="0"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="flyouts" className="block text-sm font-medium mb-2">
-            フライアウト
-          </label>
-          <input
-            id="flyouts"
-            name="flyouts"
-            type="number"
-            value={formData.flyouts}
-            onChange={handleChange}
-            disabled={isLoading}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 disabled:bg-gray-100"
-            min="0"
-          />
-        </div>
       </div>
+
+      {/* Note: Out details (strikeouts, groundouts, flyouts) removed for simpler UX */}
 
       <div className="flex gap-4 pt-4">
         <button
