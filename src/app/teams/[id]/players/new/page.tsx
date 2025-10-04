@@ -1,14 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import PlayerForm from "@/components/players/PlayerForm";
-import type { TeamWithPlayers } from "@/types";
+import type { TeamWithPlayers, Player } from "@/types";
 
 export default function NewPlayerPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const teamId = params.id as string;
+  const copyFromId = searchParams.get("copyFrom");
   const [team, setTeam] = useState<TeamWithPlayers | null>(null);
+  const [copyFromPlayer, setCopyFromPlayer] = useState<Player | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -28,6 +31,14 @@ export default function NewPlayerPage() {
       }
 
       setTeam(result.data);
+
+      // copyFromパラメータがある場合、該当選手のデータを取得
+      if (copyFromId) {
+        const player = result.data.players.find((p: Player) => p.id === copyFromId);
+        if (player) {
+          setCopyFromPlayer(player);
+        }
+      }
     } catch (err) {
       console.error("Error fetching team:", err);
       setError("チームの取得に失敗しました");
@@ -79,6 +90,11 @@ export default function NewPlayerPage() {
           </h1>
           <p className="text-gray-600">
             選手情報を入力して登録します（{team.players.length}/9人）
+            {copyFromPlayer && (
+              <span className="ml-2 text-green-600">
+                📋 「{copyFromPlayer.name}」の成績をコピー
+              </span>
+            )}
           </p>
         </div>
 
@@ -87,6 +103,7 @@ export default function NewPlayerPage() {
             teamId={teamId}
             mode="create"
             existingBattingOrders={existingBattingOrders}
+            initialData={copyFromPlayer || undefined}
           />
         </div>
       </div>

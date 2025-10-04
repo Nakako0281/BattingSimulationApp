@@ -268,6 +268,14 @@ export default function TeamDetailPage() {
                             編集
                           </button>
                           <button
+                            onClick={() =>
+                              router.push(`/teams/${teamId}/players/new?copyFrom=${player.id}`)
+                            }
+                            className="text-green-600 hover:text-green-800 font-medium mr-4"
+                          >
+                            コピー
+                          </button>
+                          <button
                             onClick={() => handleDeletePlayer(player.id, player.name)}
                             className="text-red-600 hover:text-red-800 font-medium"
                           >

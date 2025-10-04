@@ -9,6 +9,7 @@ interface PlayerFormProps {
   player?: Player;
   mode: "create" | "edit";
   existingBattingOrders?: number[];
+  initialData?: Player;
 }
 
 export default function PlayerForm({
@@ -16,17 +17,23 @@ export default function PlayerForm({
   player,
   mode,
   existingBattingOrders = [],
+  initialData,
 }: PlayerFormProps) {
   const router = useRouter();
+
+  // コピーモード: initialDataがある場合は成績のみコピー、名前と打順は空/デフォルト
+  // 編集モード: playerデータを使用
+  const sourcePlayer = player || initialData;
+
   const [formData, setFormData] = useState({
     name: player?.name || "",
     batting_order: player?.batting_order || 1,
-    singles: player?.singles || 0,
-    doubles: player?.doubles || 0,
-    triples: player?.triples || 0,
-    home_runs: player?.home_runs || 0,
-    walks: player?.walks || 0,
-    at_bats: player?.at_bats || 0,
+    singles: sourcePlayer?.singles || 0,
+    doubles: sourcePlayer?.doubles || 0,
+    triples: sourcePlayer?.triples || 0,
+    home_runs: sourcePlayer?.home_runs || 0,
+    walks: sourcePlayer?.walks || 0,
+    at_bats: sourcePlayer?.at_bats || 0,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
