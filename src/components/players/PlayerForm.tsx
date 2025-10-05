@@ -10,6 +10,7 @@ interface PlayerFormProps {
   mode: "create" | "edit";
   existingBattingOrders?: number[];
   initialData?: Player;
+  initialBattingOrder?: number;
 }
 
 export default function PlayerForm({
@@ -18,6 +19,7 @@ export default function PlayerForm({
   mode,
   existingBattingOrders = [],
   initialData,
+  initialBattingOrder,
 }: PlayerFormProps) {
   const router = useRouter();
 
@@ -27,7 +29,7 @@ export default function PlayerForm({
 
   const [formData, setFormData] = useState({
     name: player?.name || "",
-    batting_order: player?.batting_order || 1,
+    batting_order: player?.batting_order || initialBattingOrder || 1,
     singles: sourcePlayer?.singles || 0,
     doubles: sourcePlayer?.doubles || 0,
     triples: sourcePlayer?.triples || 0,

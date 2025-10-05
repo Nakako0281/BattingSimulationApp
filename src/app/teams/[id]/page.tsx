@@ -164,75 +164,55 @@ export default function TeamDetailPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-8 mb-8">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-gray-900">選手一覧</h2>
-            <button
-              onClick={() => router.push(`/teams/${teamId}/players/new`)}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-medium"
-              disabled={team.players.length >= 9}
-            >
-              選手を追加
-            </button>
           </div>
 
-          {team.players.length >= 9 && (
-            <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded mb-6">
-              選手は最大9人まで登録できます
-            </div>
-          )}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
+                    打順
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
+                    選手名
+                  </th>
+                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
+                    打数
+                  </th>
+                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
+                    安打
+                  </th>
+                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
+                    本塁打
+                  </th>
+                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
+                    打率
+                  </th>
+                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
+                    出塁率
+                  </th>
+                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
+                    長打率
+                  </th>
+                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
+                    OPS
+                  </th>
+                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-900">
+                    操作
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {Array.from({ length: 9 }, (_, i) => {
+                  const order = i + 1;
+                  const player = team.players.find((p) => p.batting_order === order);
 
-          {team.players.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-600 mb-4">まだ選手が登録されていません</p>
-              <button
-                onClick={() => router.push(`/teams/${teamId}/players/new`)}
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-medium"
-              >
-                最初の選手を追加
-              </button>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
-                      打順
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
-                      選手名
-                    </th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
-                      打数
-                    </th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
-                      安打
-                    </th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
-                      本塁打
-                    </th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
-                      打率
-                    </th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
-                      出塁率
-                    </th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
-                      長打率
-                    </th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
-                      OPS
-                    </th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-900">
-                      操作
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {team.players.map((player) => {
+                  if (player) {
                     const stats = calculatePlayerStats(player);
                     return (
-                      <tr key={player.id} className="hover:bg-gray-50">
+                      <tr key={order} className="hover:bg-gray-50">
                         <td className="px-4 py-3 text-sm text-gray-900">
-                          {player.batting_order}
+                          {order}
                         </td>
                         <td className="px-4 py-3 text-sm font-medium text-gray-900">
                           {player.name}
@@ -284,11 +264,35 @@ export default function TeamDetailPage() {
                         </td>
                       </tr>
                     );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  } else {
+                    return (
+                      <tr key={order} className="bg-gray-50">
+                        <td className="px-4 py-3 text-sm text-gray-900">
+                          {order}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-400 italic">
+                          (未登録)
+                        </td>
+                        <td colSpan={7} className="px-4 py-3 text-sm text-center text-gray-400">
+                          -
+                        </td>
+                        <td className="px-4 py-3 text-sm text-center">
+                          <button
+                            onClick={() =>
+                              router.push(`/teams/${teamId}/players/new?battingOrder=${order}`)
+                            }
+                            className="text-blue-600 hover:text-blue-800 font-medium"
+                          >
+                            追加
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  }
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

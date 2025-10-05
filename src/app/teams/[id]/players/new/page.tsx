@@ -10,10 +10,13 @@ export default function NewPlayerPage() {
   const searchParams = useSearchParams();
   const teamId = params.id as string;
   const copyFromId = searchParams.get("copyFrom");
+  const battingOrderParam = searchParams.get("battingOrder");
   const [team, setTeam] = useState<TeamWithPlayers | null>(null);
   const [copyFromPlayer, setCopyFromPlayer] = useState<Player | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const initialBattingOrder = battingOrderParam ? parseInt(battingOrderParam) : undefined;
 
   useEffect(() => {
     fetchTeam();
@@ -95,6 +98,11 @@ export default function NewPlayerPage() {
                 📋 「{copyFromPlayer.name}」の成績をコピー
               </span>
             )}
+            {initialBattingOrder && (
+              <span className="ml-2 text-blue-600">
+                打順{initialBattingOrder}番で登録
+              </span>
+            )}
           </p>
         </div>
 
@@ -104,6 +112,7 @@ export default function NewPlayerPage() {
             mode="create"
             existingBattingOrders={existingBattingOrders}
             initialData={copyFromPlayer || undefined}
+            initialBattingOrder={initialBattingOrder}
           />
         </div>
       </div>
