@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { MdEdit, MdDelete, MdContentCopy, MdAdd } from "react-icons/md";
+import { MdEdit, MdDelete, MdContentCopy, MdAdd, MdContentPaste } from "react-icons/md";
 import type { TeamWithPlayers, Player } from "@/types";
 import { calculatePlayerStats, calculateTeamStats, formatBattingAverage, formatPercentage, formatOPS } from "@/lib/utils/stats";
 
@@ -19,6 +19,16 @@ export default function TeamDetailPage() {
   // インライン編集用のstate
   const [formData, setFormData] = useState<Record<string, Player>>({});
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  // コピー&ペースト用のstate
+  const [copiedPlayerStats, setCopiedPlayerStats] = useState<{
+    at_bats: number;
+    singles: number;
+    doubles: number;
+    triples: number;
+    home_runs: number;
+    walks: number;
+  } | null>(null);
 
   useEffect(() => {
     fetchTeam();
@@ -88,6 +98,42 @@ export default function TeamDetailPage() {
     }
   };
 
+  // コピーハンドラー
+  const handleCopyStats = (player: Player) => {
+    setCopiedPlayerStats({
+      at_bats: player.at_bats,
+      singles: player.singles,
+      doubles: player.doubles,
+      triples: player.triples,
+      home_runs: player.home_runs,
+      walks: player.walks,
+    });
+  };
+
+  // ペーストハンドラー
+  const handlePasteStats = (playerId: string) => {
+    if (!copiedPlayerStats) return;
+
+    setFormData(prev => ({
+      ...prev,
+      [playerId]: {
+        ...prev[playerId],
+        at_bats: copiedPlayerStats.at_bats,
+        singles: copiedPlayerStats.singles,
+        doubles: copiedPlayerStats.doubles,
+        triples: copiedPlayerStats.triples,
+        home_runs: copiedPlayerStats.home_runs,
+        walks: copiedPlayerStats.walks,
+      }
+    }));
+
+    // バリデーションをクリア
+    setValidationErrors(prev => ({
+      ...prev,
+      [playerId]: ''
+    }));
+  };
+
   // 一括保存ハンドラー
   const handleBulkSave = async () => {
     if (!team) return;
@@ -122,8 +168,9 @@ export default function TeamDetailPage() {
         )
       );
 
-      // 成功時: チーム情報を再取得
+      // 成功時: チーム情報を再取得してコピー状態をクリア
       await fetchTeam();
+      setCopiedPlayerStats(null);
       alert('保存しました');
     } catch (err) {
       console.error('Bulk save error:', err);
@@ -282,7 +329,19 @@ export default function TeamDetailPage() {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full table-fixed">
+              <colgroup>
+                <col className="w-16" /> {/* 打順 */}
+                <col className="w-48" /> {/* 選手名 */}
+                <col className="w-24" /> {/* 打数 */}
+                <col className="w-20" /> {/* 単打 */}
+                <col className="w-20" /> {/* 二塁打 */}
+                <col className="w-20" /> {/* 三塁打 */}
+                <col className="w-20" /> {/* 本塁打 */}
+                <col className="w-20" /> {/* 四球 */}
+                <col className="w-20" /> {/* 打率 */}
+                <col className="w-28" /> {/* 操作 */}
+              </colgroup>
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-2 py-3 text-left text-sm font-medium text-gray-900">打順</th>
@@ -380,31 +439,49 @@ export default function TeamDetailPage() {
                           )}
                         </td>
                         <td className="px-2 py-2 text-sm text-center">
-                          <div className="relative group inline-block mr-2">
-                            <button
-                              onClick={() =>
-                                router.push(`/teams/${teamId}/players/new?copyFrom=${player.id}`)
-                              }
-                              className="text-green-600 hover:text-green-800"
-                              aria-label="コピー"
-                            >
-                              <MdContentCopy size={18} />
-                            </button>
-                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap hidden md:block">
-                              コピー
-                            </span>
-                          </div>
-                          <div className="relative group inline-block">
-                            <button
-                              onClick={() => handleDeletePlayer(player.id, player.name)}
-                              className="text-red-600 hover:text-red-800"
-                              aria-label="削除"
-                            >
-                              <MdDelete size={18} />
-                            </button>
-                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap hidden md:block">
-                              削除
-                            </span>
+                          <div className="flex items-center justify-center gap-2">
+                            {/* コピーボタンまたはペーストボタン */}
+                            {copiedPlayerStats ? (
+                              <div className="relative group">
+                                <button
+                                  onClick={() => handlePasteStats(player.id)}
+                                  className="text-blue-600 hover:text-blue-800"
+                                  aria-label="ペースト"
+                                >
+                                  <MdContentPaste size={18} />
+                                </button>
+                                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap hidden md:block z-10">
+                                  ペースト
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="relative group">
+                                <button
+                                  onClick={() => handleCopyStats(player)}
+                                  className="text-green-600 hover:text-green-800"
+                                  aria-label="コピー"
+                                >
+                                  <MdContentCopy size={18} />
+                                </button>
+                                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap hidden md:block z-10">
+                                  コピー
+                                </span>
+                              </div>
+                            )}
+
+                            {/* 削除ボタン */}
+                            <div className="relative group">
+                              <button
+                                onClick={() => handleDeletePlayer(player.id, player.name)}
+                                className="text-red-600 hover:text-red-800"
+                                aria-label="削除"
+                              >
+                                <MdDelete size={18} />
+                              </button>
+                              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap hidden md:block z-10">
+                                削除
+                              </span>
+                            </div>
                           </div>
                         </td>
                       </tr>
@@ -412,16 +489,16 @@ export default function TeamDetailPage() {
                   } else {
                     return (
                       <tr key={order} className="bg-gray-50">
-                        <td className="px-4 py-3 text-sm text-gray-900">
+                        <td className="px-2 py-3 text-sm text-gray-900">
                           {order}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-400 italic">
+                        <td className="px-2 py-3 text-sm text-gray-400 italic">
                           (未登録)
                         </td>
-                        <td colSpan={7} className="px-4 py-3 text-sm text-center text-gray-400">
+                        <td colSpan={7} className="px-2 py-3 text-sm text-center text-gray-400">
                           -
                         </td>
-                        <td className="px-4 py-3 text-sm text-center">
+                        <td className="px-2 py-3 text-sm text-center">
                           <div className="relative group inline-block">
                             <button
                               onClick={() =>
@@ -432,7 +509,7 @@ export default function TeamDetailPage() {
                             >
                               <MdAdd size={20} />
                             </button>
-                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap hidden md:block">
+                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap hidden md:block z-10">
                               追加
                             </span>
                           </div>
