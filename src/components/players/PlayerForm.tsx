@@ -195,8 +195,26 @@ export default function PlayerForm({
     router.push(`/teams/${teamId}`);
   };
 
-  // すべての打順を選択可能に（1～9番）
-  const availableBattingOrders = Array.from({ length: 9 }, (_, i) => i + 1);
+  // 打順選択可否の判定
+  const isBattingOrderDisabled = mode === "edit";
+
+  // 利用可能な打順を計算
+  const availableBattingOrders = Array.from({ length: 9 }, (_, i) => i + 1).filter(
+    (order) => {
+      // 編集モード: 自分の打順のみ
+      if (mode === "edit") {
+        return order === player?.batting_order;
+      }
+
+      // コピーモード: コピー元の打順を除外
+      if (initialData && order === initialData.batting_order) {
+        return false;
+      }
+
+      // 新規作成モード: すべて選択可能
+      return true;
+    }
+  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-4xl">
@@ -250,8 +268,8 @@ export default function PlayerForm({
             name="batting_order"
             value={formData.batting_order}
             onChange={handleChange}
-            disabled={isLoading}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 disabled:bg-gray-100"
+            disabled={isLoading || isBattingOrderDisabled}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 disabled:bg-gray-100 disabled:cursor-not-allowed"
             required
           >
             {availableBattingOrders.map((order) => (
@@ -260,6 +278,11 @@ export default function PlayerForm({
               </option>
             ))}
           </select>
+          {mode === "edit" && (
+            <p className="mt-1 text-sm text-gray-500">
+              ※ 打順は編集できません
+            </p>
+          )}
         </div>
 
         {/* 打撃成績 */}
