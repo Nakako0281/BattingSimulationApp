@@ -2,6 +2,7 @@
 
 import { memo, useCallback, useMemo } from "react";
 import Link from "next/link";
+import { MdVisibility, MdEdit, MdDelete } from "react-icons/md";
 import type { Team } from "@/types";
 
 interface TeamCardProps {
@@ -25,25 +26,28 @@ function TeamCard({ team, onDelete }: TeamCardProps) {
     <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition">
       <div className="flex justify-between items-start mb-4">
         <h3 className="text-xl font-bold text-gray-900">{team.name}</h3>
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <Link
             href={`/teams/${team.id}`}
-            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            className="text-blue-600 hover:text-blue-800 inline-flex items-center justify-center"
+            aria-label="詳細"
           >
-            詳細
+            <MdVisibility size={20} />
           </Link>
           <Link
             href={`/teams/${team.id}/edit`}
-            className="text-green-600 hover:text-green-800 text-sm font-medium"
+            className="text-green-600 hover:text-green-800 inline-flex items-center justify-center"
+            aria-label="編集"
           >
-            編集
+            <MdEdit size={20} />
           </Link>
           {onDelete && (
             <button
               onClick={handleDelete}
-              className="text-red-600 hover:text-red-800 text-sm font-medium"
+              className="text-red-600 hover:text-red-800 inline-flex items-center justify-center"
+              aria-label="削除"
             >
-              削除
+              <MdDelete size={20} />
             </button>
           )}
         </div>

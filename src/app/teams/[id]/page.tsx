@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { MdEdit, MdDelete, MdContentCopy, MdAdd } from "react-icons/md";
 import type { TeamWithPlayers } from "@/types";
 import { calculatePlayerStats, calculateTeamStats, formatBattingAverage, formatPercentage, formatOPS } from "@/lib/utils/stats";
 
@@ -243,23 +244,26 @@ export default function TeamDetailPage() {
                             onClick={() =>
                               router.push(`/teams/${teamId}/players/${player.id}/edit`)
                             }
-                            className="text-blue-600 hover:text-blue-800 font-medium mr-4"
+                            className="text-blue-600 hover:text-blue-800 mr-3 inline-flex items-center justify-center"
+                            aria-label="編集"
                           >
-                            編集
+                            <MdEdit size={20} />
                           </button>
                           <button
                             onClick={() =>
                               router.push(`/teams/${teamId}/players/new?copyFrom=${player.id}`)
                             }
-                            className="text-green-600 hover:text-green-800 font-medium mr-4"
+                            className="text-green-600 hover:text-green-800 mr-3 inline-flex items-center justify-center"
+                            aria-label="コピー"
                           >
-                            コピー
+                            <MdContentCopy size={20} />
                           </button>
                           <button
                             onClick={() => handleDeletePlayer(player.id, player.name)}
-                            className="text-red-600 hover:text-red-800 font-medium"
+                            className="text-red-600 hover:text-red-800 inline-flex items-center justify-center"
+                            aria-label="削除"
                           >
-                            削除
+                            <MdDelete size={20} />
                           </button>
                         </td>
                       </tr>
@@ -281,9 +285,10 @@ export default function TeamDetailPage() {
                             onClick={() =>
                               router.push(`/teams/${teamId}/players/new?battingOrder=${order}`)
                             }
-                            className="text-blue-600 hover:text-blue-800 font-medium"
+                            className="text-blue-600 hover:text-blue-800 inline-flex items-center justify-center"
+                            aria-label="追加"
                           >
-                            追加
+                            <MdAdd size={20} />
                           </button>
                         </td>
                       </tr>
