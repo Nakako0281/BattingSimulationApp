@@ -70,18 +70,6 @@ export default function NewPlayerPage() {
     );
   }
 
-  if (team.players.length >= 9) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded">
-            選手は最大9人までです。新しい選手を追加するには、既存の選手を削除してください。
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   const existingBattingOrders = team.players.map((p) => p.batting_order);
 
   return (
