@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getUserTeams, createTeam } from "@/lib/supabase/teams";
+import { createPlayer } from "@/lib/supabase/players";
 import { createTeamSchema } from "@/lib/utils/validation";
+import { createDefaultPlayers } from "@/lib/constants/defaultPlayers";
 import { z } from "zod";
 
 /**
@@ -58,16 +60,30 @@ export async function POST(request: Request) {
     // Validate input
     const validatedData = createTeamSchema.parse(body);
 
-    const { data, error } = await createTeam(session.user.id, validatedData);
+    const { data: team, error } = await createTeam(session.user.id, validatedData);
 
-    if (error) {
+    if (error || !team) {
       return NextResponse.json(
-        { success: false, error },
+        { success: false, error: error || "Failed to create team" },
         { status: 400 }
       );
     }
 
-    return NextResponse.json({ success: true, data }, { status: 201 });
+    // Auto-create default players (9 players with OPS ~0.750)
+    const defaultPlayers = createDefaultPlayers(team.id);
+    for (const playerData of defaultPlayers) {
+      const { error: playerError } = await createPlayer({
+        team_id: team.id,
+        ...playerData,
+      });
+
+      if (playerError) {
+        console.error(`Failed to create default player ${playerData.name}:`, playerError);
+        // Continue creating other players even if one fails
+      }
+    }
+
+    return NextResponse.json({ success: true, data: team }, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
