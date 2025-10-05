@@ -16,7 +16,8 @@ export default function Header() {
   const navItems = [
     { href: "/dashboard", label: "ダッシュボード" },
     { href: "/teams", label: "チーム管理" },
-    { href: "/simulate", label: "シミュレーション" },
+    { href: "/simulate", label: "1試合" },
+    { href: "/simulate/season", label: "シーズン" },
     { href: "/history", label: "履歴" },
   ];
 
