@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { MdEdit, MdDelete, MdContentCopy, MdAdd } from "react-icons/md";
 import type { TeamWithPlayers } from "@/types";
 import { calculatePlayerStats, calculateTeamStats, formatBattingAverage, formatPercentage, formatOPS } from "@/lib/utils/stats";
@@ -93,20 +94,28 @@ export default function TeamDetailPage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {team.name}
-            </h1>
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-3xl font-bold text-gray-900">
+                {team.name}
+              </h1>
+              <div className="relative group inline-block">
+                <Link
+                  href={`/teams/${teamId}/edit`}
+                  className="text-blue-600 hover:text-blue-800 inline-flex items-center justify-center"
+                  aria-label="チーム名を編集"
+                >
+                  <MdEdit size={24} />
+                </Link>
+                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap hidden md:block">
+                  編集
+                </span>
+              </div>
+            </div>
             <p className="text-gray-600">
               作成日: {new Date(team.created_at).toLocaleDateString("ja-JP")}
             </p>
           </div>
-          <div className="flex gap-4">
-            <button
-              onClick={() => router.push(`/teams/${teamId}/edit`)}
-              className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition font-medium"
-            >
-              編集
-            </button>
+          <div>
             <button
               onClick={() => router.push("/teams")}
               className="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition font-medium"

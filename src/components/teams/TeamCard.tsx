@@ -2,7 +2,7 @@
 
 import { memo, useCallback, useMemo } from "react";
 import Link from "next/link";
-import { MdVisibility, MdEdit, MdDelete } from "react-icons/md";
+import { MdDelete } from "react-icons/md";
 import type { Team } from "@/types";
 
 interface TeamCardProps {
@@ -23,36 +23,24 @@ function TeamCard({ team, onDelete }: TeamCardProps) {
   );
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition">
-      <div className="flex justify-between items-start mb-4">
-        <h3 className="text-xl font-bold text-gray-900">{team.name}</h3>
-        <div className="flex gap-3">
-          <div className="relative group inline-block">
-            <Link
-              href={`/teams/${team.id}`}
-              className="text-blue-600 hover:text-blue-800 inline-flex items-center justify-center"
-              aria-label="詳細"
-            >
-              <MdVisibility size={20} />
-            </Link>
-            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap hidden md:block">
-              詳細
-            </span>
-          </div>
-          <div className="relative group inline-block">
-            <Link
-              href={`/teams/${team.id}/edit`}
-              className="text-green-600 hover:text-green-800 inline-flex items-center justify-center"
-              aria-label="編集"
-            >
-              <MdEdit size={20} />
-            </Link>
-            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap hidden md:block">
-              編集
-            </span>
-          </div>
+    <div className="bg-white border border-gray-200 rounded-lg hover:shadow-lg transition relative">
+      <Link
+        href={`/teams/${team.id}`}
+        className="block p-6"
+        aria-label={`${team.name}の詳細を見る`}
+      >
+        <div className="flex justify-between items-start mb-4">
+          <h3 className="text-xl font-bold text-gray-900">{team.name}</h3>
+
+          {/* 削除ボタンのみ */}
           {onDelete && (
-            <div className="relative group inline-block">
+            <div
+              className="relative group inline-block"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+            >
               <button
                 onClick={handleDelete}
                 className="text-red-600 hover:text-red-800 inline-flex items-center justify-center"
@@ -66,11 +54,11 @@ function TeamCard({ team, onDelete }: TeamCardProps) {
             </div>
           )}
         </div>
-      </div>
 
-      <div className="text-sm text-gray-500">
-        作成日: {formattedDate}
-      </div>
+        <div className="text-sm text-gray-500">
+          作成日: {formattedDate}
+        </div>
+      </Link>
     </div>
   );
 }
