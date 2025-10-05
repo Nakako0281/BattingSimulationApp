@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { Player } from "@/types";
 
@@ -29,7 +29,9 @@ export default function PlayerForm({
 
   const [formData, setFormData] = useState({
     name: player?.name || "",
+    // コピーモード時はinitialDataの打順を使わない（成績のみコピー）
     batting_order: player?.batting_order || initialBattingOrder || 1,
+    // 成績データは編集モードまたはコピーモードで取得
     singles: sourcePlayer?.singles || 0,
     doubles: sourcePlayer?.doubles || 0,
     triples: sourcePlayer?.triples || 0,
@@ -137,6 +139,16 @@ export default function PlayerForm({
     (order) =>
       order === player?.batting_order || !existingBattingOrders.includes(order)
   );
+
+  // 現在の打順が利用可能な打順に含まれていない場合、最初の利用可能な打順に更新
+  useEffect(() => {
+    if (availableBattingOrders.length > 0 && !availableBattingOrders.includes(formData.batting_order)) {
+      setFormData((prev) => ({
+        ...prev,
+        batting_order: availableBattingOrders[0],
+      }));
+    }
+  }, [availableBattingOrders, formData.batting_order]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-4xl">
