@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { MdEdit, MdDelete, MdContentCopy, MdContentPaste } from "react-icons/md";
+import { MdEdit, MdDelete, MdContentCopy, MdContentPaste, MdClose } from "react-icons/md";
 import type { TeamWithPlayers, Player } from "@/types";
 import { calculatePlayerStats, calculateTeamStats, formatBattingAverage, formatPercentage, formatOPS } from "@/lib/utils/stats";
 
@@ -22,12 +22,15 @@ export default function TeamDetailPage() {
 
   // コピー&ペースト用のstate
   const [copiedPlayerStats, setCopiedPlayerStats] = useState<{
-    at_bats: number;
-    singles: number;
-    doubles: number;
-    triples: number;
-    home_runs: number;
-    walks: number;
+    playerId: string;
+    stats: {
+      at_bats: number;
+      singles: number;
+      doubles: number;
+      triples: number;
+      home_runs: number;
+      walks: number;
+    };
   } | null>(null);
 
   useEffect(() => {
@@ -101,12 +104,15 @@ export default function TeamDetailPage() {
   // コピーハンドラー
   const handleCopyStats = (player: Player) => {
     setCopiedPlayerStats({
-      at_bats: player.at_bats,
-      singles: player.singles,
-      doubles: player.doubles,
-      triples: player.triples,
-      home_runs: player.home_runs,
-      walks: player.walks,
+      playerId: player.id,
+      stats: {
+        at_bats: player.at_bats,
+        singles: player.singles,
+        doubles: player.doubles,
+        triples: player.triples,
+        home_runs: player.home_runs,
+        walks: player.walks,
+      }
     });
   };
 
@@ -118,12 +124,12 @@ export default function TeamDetailPage() {
       ...prev,
       [playerId]: {
         ...prev[playerId],
-        at_bats: copiedPlayerStats.at_bats,
-        singles: copiedPlayerStats.singles,
-        doubles: copiedPlayerStats.doubles,
-        triples: copiedPlayerStats.triples,
-        home_runs: copiedPlayerStats.home_runs,
-        walks: copiedPlayerStats.walks,
+        at_bats: copiedPlayerStats.stats.at_bats,
+        singles: copiedPlayerStats.stats.singles,
+        doubles: copiedPlayerStats.stats.doubles,
+        triples: copiedPlayerStats.stats.triples,
+        home_runs: copiedPlayerStats.stats.home_runs,
+        walks: copiedPlayerStats.stats.walks,
       }
     }));
 
@@ -132,6 +138,11 @@ export default function TeamDetailPage() {
       ...prev,
       [playerId]: ''
     }));
+  };
+
+  // コピーキャンセルハンドラー
+  const handleCancelCopy = () => {
+    setCopiedPlayerStats(null);
   };
 
   // 一括保存ハンドラー
@@ -451,8 +462,23 @@ export default function TeamDetailPage() {
                         </td>
                         <td className="px-2 py-2 text-sm text-center">
                           <div className="flex items-center justify-center gap-2">
-                            {/* コピーボタンまたはペーストボタン */}
-                            {copiedPlayerStats ? (
+                            {/* コピー/ペースト/キャンセルボタン */}
+                            {copiedPlayerStats && copiedPlayerStats.playerId === player.id ? (
+                              // コピー元の選手: キャンセルボタンを表示
+                              <div className="relative group">
+                                <button
+                                  onClick={handleCancelCopy}
+                                  className="text-red-600 hover:text-red-800"
+                                  aria-label="キャンセル"
+                                >
+                                  <MdClose size={18} />
+                                </button>
+                                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap hidden md:block z-10">
+                                  キャンセル
+                                </span>
+                              </div>
+                            ) : copiedPlayerStats ? (
+                              // 他の選手: ペーストボタンを表示
                               <div className="relative group">
                                 <button
                                   onClick={() => handlePasteStats(player.id)}
@@ -466,6 +492,7 @@ export default function TeamDetailPage() {
                                 </span>
                               </div>
                             ) : (
+                              // コピー前: コピーボタンを表示
                               <div className="relative group">
                                 <button
                                   onClick={() => handleCopyStats(player)}
