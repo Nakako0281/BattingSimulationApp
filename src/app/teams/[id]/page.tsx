@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { MdEdit, MdDelete, MdContentCopy, MdAdd, MdContentPaste } from "react-icons/md";
+import { MdEdit, MdDelete, MdContentCopy, MdContentPaste } from "react-icons/md";
 import type { TeamWithPlayers, Player } from "@/types";
 import { calculatePlayerStats, calculateTeamStats, formatBattingAverage, formatPercentage, formatOPS } from "@/lib/utils/stats";
 
@@ -180,33 +180,42 @@ export default function TeamDetailPage() {
     }
   };
 
-  const handleDeletePlayer = async (playerId: string, playerName: string) => {
-    if (!confirm(`「${playerName}」を削除してもよろしいですか？`)) {
+  const handleResetPlayer = async (player: Player) => {
+    if (!confirm(`「${player.name}」を初期状態に戻してもよろしいですか？\n（名前: 選手${player.batting_order}、成績: すべて0）`)) {
       return;
     }
 
     try {
-      const response = await fetch(`/api/players/${playerId}?team_id=${teamId}`, {
-        method: "DELETE",
+      const response = await fetch(`/api/players/${player.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: `選手${player.batting_order}`,
+          at_bats: 0,
+          singles: 0,
+          doubles: 0,
+          triples: 0,
+          home_runs: 0,
+          walks: 0,
+          team_id: teamId,
+        }),
       });
 
       const result = await response.json();
 
       if (!result.success) {
-        alert(result.error || "削除に失敗しました");
+        alert(result.error || "リセットに失敗しました");
         return;
       }
 
-      // 選手リストから削除
-      if (team) {
-        setTeam({
-          ...team,
-          players: team.players.filter((p) => p.id !== playerId),
-        });
-      }
+      // チーム情報を再取得
+      await fetchTeam();
+      alert("選手を初期状態に戻しました");
     } catch (err) {
-      console.error("Error deleting player:", err);
-      alert("削除に失敗しました");
+      console.error("Error resetting player:", err);
+      alert("リセットに失敗しました");
     }
   };
 
@@ -361,13 +370,15 @@ export default function TeamDetailPage() {
                   const order = i + 1;
                   const player = team.players.find((p) => p.batting_order === order);
 
-                  if (player) {
-                    const currentData = formData[player.id] || player;
-                    const stats = calculatePlayerStats(currentData);
-                    const hasError = validationErrors[player.id];
+                  // 選手が存在しない場合はスキップ（常に9人いる前提だが念のため）
+                  if (!player) return null;
 
-                    return (
-                      <tr key={order} className="hover:bg-gray-50">
+                  const currentData = formData[player.id] || player;
+                  const stats = calculatePlayerStats(currentData);
+                  const hasError = validationErrors[player.id];
+
+                  return (
+                    <tr key={order} className="hover:bg-gray-50">
                         <td className="px-2 py-2 text-sm text-gray-900">{order}</td>
                         <td className="px-2 py-2">
                           <input
@@ -469,54 +480,23 @@ export default function TeamDetailPage() {
                               </div>
                             )}
 
-                            {/* 削除ボタン */}
+                            {/* リセットボタン */}
                             <div className="relative group">
                               <button
-                                onClick={() => handleDeletePlayer(player.id, player.name)}
-                                className="text-red-600 hover:text-red-800"
-                                aria-label="削除"
+                                onClick={() => handleResetPlayer(player)}
+                                className="text-orange-600 hover:text-orange-800"
+                                aria-label="リセット"
                               >
                                 <MdDelete size={18} />
                               </button>
                               <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap hidden md:block z-10">
-                                削除
+                                リセット
                               </span>
                             </div>
                           </div>
                         </td>
                       </tr>
                     );
-                  } else {
-                    return (
-                      <tr key={order} className="bg-gray-50">
-                        <td className="px-2 py-3 text-sm text-gray-900">
-                          {order}
-                        </td>
-                        <td className="px-2 py-3 text-sm text-gray-400 italic">
-                          (未登録)
-                        </td>
-                        <td colSpan={7} className="px-2 py-3 text-sm text-center text-gray-400">
-                          -
-                        </td>
-                        <td className="px-2 py-3 text-sm text-center">
-                          <div className="relative group inline-block">
-                            <button
-                              onClick={() =>
-                                router.push(`/teams/${teamId}/players/new?battingOrder=${order}`)
-                              }
-                              className="text-blue-600 hover:text-blue-800 inline-flex items-center justify-center"
-                              aria-label="追加"
-                            >
-                              <MdAdd size={20} />
-                            </button>
-                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap hidden md:block z-10">
-                              追加
-                            </span>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  }
                 })}
               </tbody>
             </table>
