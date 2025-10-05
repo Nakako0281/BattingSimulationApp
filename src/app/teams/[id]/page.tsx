@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { MdEdit, MdDelete, MdContentCopy, MdAdd } from "react-icons/md";
-import type { TeamWithPlayers } from "@/types";
+import type { TeamWithPlayers, Player } from "@/types";
 import { calculatePlayerStats, calculateTeamStats, formatBattingAverage, formatPercentage, formatOPS } from "@/lib/utils/stats";
 
 export default function TeamDetailPage() {
@@ -13,7 +13,12 @@ export default function TeamDetailPage() {
   const teamId = params.id as string;
   const [team, setTeam] = useState<TeamWithPlayers | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
+
+  // インライン編集用のstate
+  const [formData, setFormData] = useState<Record<string, Player>>({});
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchTeam();
@@ -31,11 +36,100 @@ export default function TeamDetailPage() {
       }
 
       setTeam(result.data);
+
+      // フォームデータを初期化
+      const initialFormData: Record<string, Player> = {};
+      result.data.players.forEach((player: Player) => {
+        initialFormData[player.id] = { ...player };
+      });
+      setFormData(initialFormData);
     } catch (err) {
       console.error("Error fetching team:", err);
       setError("チームの取得に失敗しました");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // 変更検知
+  const hasChanges = useMemo(() => {
+    if (!team) return false;
+    return team.players.some(player => {
+      const current = formData[player.id];
+      if (!current) return false;
+      return JSON.stringify(player) !== JSON.stringify(current);
+    });
+  }, [formData, team]);
+
+  // 入力変更ハンドラー
+  const handleChange = (playerId: string, field: keyof Player, value: string | number) => {
+    setFormData(prev => ({
+      ...prev,
+      [playerId]: {
+        ...prev[playerId],
+        [field]: field === 'name' ? value : Number(value)
+      }
+    }));
+
+    // バリデーション
+    const updated = { ...formData[playerId], [field]: field === 'name' ? value : Number(value) };
+    const hits = (updated.singles || 0) + (updated.doubles || 0) + (updated.triples || 0) + (updated.home_runs || 0);
+
+    if (hits > (updated.at_bats || 0)) {
+      setValidationErrors(prev => ({
+        ...prev,
+        [playerId]: '安打数が打数を超えています'
+      }));
+    } else {
+      setValidationErrors(prev => ({
+        ...prev,
+        [playerId]: ''
+      }));
+    }
+  };
+
+  // 一括保存ハンドラー
+  const handleBulkSave = async () => {
+    if (!team) return;
+
+    // バリデーションエラーチェック
+    const hasErrors = Object.values(validationErrors).some(err => err !== '');
+    if (hasErrors) {
+      alert('入力エラーがあります。修正してください。');
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      // 変更があった選手を抽出
+      const changedPlayers = team.players.filter(player => {
+        const current = formData[player.id];
+        return JSON.stringify(player) !== JSON.stringify(current);
+      });
+
+      // 並列でUPDATE
+      await Promise.all(
+        changedPlayers.map(player =>
+          fetch(`/api/players/${player.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ...formData[player.id],
+              team_id: teamId
+            })
+          })
+        )
+      );
+
+      // 成功時: チーム情報を再取得
+      await fetchTeam();
+      alert('保存しました');
+    } catch (err) {
+      console.error('Bulk save error:', err);
+      alert('保存に失敗しました');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -174,42 +268,33 @@ export default function TeamDetailPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-8 mb-8">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-gray-900">選手一覧</h2>
+            <button
+              onClick={handleBulkSave}
+              disabled={!hasChanges || isSaving}
+              className={`px-6 py-2 rounded-lg font-medium transition ${
+                hasChanges && !isSaving
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              {isSaving ? '保存中...' : hasChanges ? '変更を保存' : '変更なし'}
+            </button>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
-                    打順
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">
-                    選手名
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
-                    打数
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
-                    安打
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
-                    本塁打
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
-                    打率
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
-                    出塁率
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
-                    長打率
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-900">
-                    OPS
-                  </th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-900">
-                    操作
-                  </th>
+                  <th className="px-2 py-3 text-left text-sm font-medium text-gray-900">打順</th>
+                  <th className="px-2 py-3 text-left text-sm font-medium text-gray-900">選手名</th>
+                  <th className="px-2 py-3 text-right text-sm font-medium text-gray-900">打数</th>
+                  <th className="px-2 py-3 text-right text-sm font-medium text-gray-900">単打</th>
+                  <th className="px-2 py-3 text-right text-sm font-medium text-gray-900">二塁打</th>
+                  <th className="px-2 py-3 text-right text-sm font-medium text-gray-900">三塁打</th>
+                  <th className="px-2 py-3 text-right text-sm font-medium text-gray-900">本塁打</th>
+                  <th className="px-2 py-3 text-right text-sm font-medium text-gray-900">四球</th>
+                  <th className="px-2 py-3 text-right text-sm font-medium text-gray-900">打率</th>
+                  <th className="px-2 py-3 text-center text-sm font-medium text-gray-900">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -218,60 +303,92 @@ export default function TeamDetailPage() {
                   const player = team.players.find((p) => p.batting_order === order);
 
                   if (player) {
-                    const stats = calculatePlayerStats(player);
+                    const currentData = formData[player.id] || player;
+                    const stats = calculatePlayerStats(currentData);
+                    const hasError = validationErrors[player.id];
+
                     return (
                       <tr key={order} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 text-sm text-gray-900">
-                          {order}
+                        <td className="px-2 py-2 text-sm text-gray-900">{order}</td>
+                        <td className="px-2 py-2">
+                          <input
+                            type="text"
+                            value={currentData.name}
+                            onChange={(e) => handleChange(player.id, 'name', e.target.value)}
+                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                          />
                         </td>
-                        <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                          {player.name}
+                        <td className="px-2 py-2">
+                          <input
+                            type="number"
+                            value={currentData.at_bats}
+                            onChange={(e) => handleChange(player.id, 'at_bats', e.target.value)}
+                            className="w-20 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                            min="0"
+                          />
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600 text-right">
-                          {stats.at_bats}
+                        <td className="px-2 py-2">
+                          <input
+                            type="number"
+                            value={currentData.singles}
+                            onChange={(e) => handleChange(player.id, 'singles', e.target.value)}
+                            className="w-16 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                            min="0"
+                          />
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600 text-right">
-                          {stats.hits}
+                        <td className="px-2 py-2">
+                          <input
+                            type="number"
+                            value={currentData.doubles}
+                            onChange={(e) => handleChange(player.id, 'doubles', e.target.value)}
+                            className="w-16 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                            min="0"
+                          />
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600 text-right">
-                          {stats.home_runs}
+                        <td className="px-2 py-2">
+                          <input
+                            type="number"
+                            value={currentData.triples}
+                            onChange={(e) => handleChange(player.id, 'triples', e.target.value)}
+                            className="w-16 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                            min="0"
+                          />
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-900 text-right font-medium">
-                          {formatBattingAverage(stats.batting_average)}
+                        <td className="px-2 py-2">
+                          <input
+                            type="number"
+                            value={currentData.home_runs}
+                            onChange={(e) => handleChange(player.id, 'home_runs', e.target.value)}
+                            className="w-16 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                            min="0"
+                          />
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600 text-right">
-                          {formatPercentage(stats.on_base_percentage)}
+                        <td className="px-2 py-2">
+                          <input
+                            type="number"
+                            value={currentData.walks}
+                            onChange={(e) => handleChange(player.id, 'walks', e.target.value)}
+                            className="w-16 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                            min="0"
+                          />
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600 text-right">
-                          {formatPercentage(stats.slugging_percentage)}
+                        <td className="px-2 py-2 text-sm text-gray-900 text-right font-medium">
+                          {hasError ? (
+                            <span className="text-red-600 text-xs">{hasError}</span>
+                          ) : (
+                            formatBattingAverage(stats.batting_average)
+                          )}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-900 text-right font-medium">
-                          {formatOPS(stats.ops)}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-center">
-                          <div className="relative group inline-block mr-3">
-                            <button
-                              onClick={() =>
-                                router.push(`/teams/${teamId}/players/${player.id}/edit`)
-                              }
-                              className="text-blue-600 hover:text-blue-800 inline-flex items-center justify-center"
-                              aria-label="編集"
-                            >
-                              <MdEdit size={20} />
-                            </button>
-                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap hidden md:block">
-                              編集
-                            </span>
-                          </div>
-                          <div className="relative group inline-block mr-3">
+                        <td className="px-2 py-2 text-sm text-center">
+                          <div className="relative group inline-block mr-2">
                             <button
                               onClick={() =>
                                 router.push(`/teams/${teamId}/players/new?copyFrom=${player.id}`)
                               }
-                              className="text-green-600 hover:text-green-800 inline-flex items-center justify-center"
+                              className="text-green-600 hover:text-green-800"
                               aria-label="コピー"
                             >
-                              <MdContentCopy size={20} />
+                              <MdContentCopy size={18} />
                             </button>
                             <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap hidden md:block">
                               コピー
@@ -280,10 +397,10 @@ export default function TeamDetailPage() {
                           <div className="relative group inline-block">
                             <button
                               onClick={() => handleDeletePlayer(player.id, player.name)}
-                              className="text-red-600 hover:text-red-800 inline-flex items-center justify-center"
+                              className="text-red-600 hover:text-red-800"
                               aria-label="削除"
                             >
-                              <MdDelete size={20} />
+                              <MdDelete size={18} />
                             </button>
                             <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap hidden md:block">
                               削除
