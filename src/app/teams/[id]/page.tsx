@@ -240,31 +240,46 @@ export default function TeamDetailPage() {
                           {formatOPS(stats.ops)}
                         </td>
                         <td className="px-4 py-3 text-sm text-center">
-                          <button
-                            onClick={() =>
-                              router.push(`/teams/${teamId}/players/${player.id}/edit`)
-                            }
-                            className="text-blue-600 hover:text-blue-800 mr-3 inline-flex items-center justify-center"
-                            aria-label="編集"
-                          >
-                            <MdEdit size={20} />
-                          </button>
-                          <button
-                            onClick={() =>
-                              router.push(`/teams/${teamId}/players/new?copyFrom=${player.id}`)
-                            }
-                            className="text-green-600 hover:text-green-800 mr-3 inline-flex items-center justify-center"
-                            aria-label="コピー"
-                          >
-                            <MdContentCopy size={20} />
-                          </button>
-                          <button
-                            onClick={() => handleDeletePlayer(player.id, player.name)}
-                            className="text-red-600 hover:text-red-800 inline-flex items-center justify-center"
-                            aria-label="削除"
-                          >
-                            <MdDelete size={20} />
-                          </button>
+                          <div className="relative group inline-block mr-3">
+                            <button
+                              onClick={() =>
+                                router.push(`/teams/${teamId}/players/${player.id}/edit`)
+                              }
+                              className="text-blue-600 hover:text-blue-800 inline-flex items-center justify-center"
+                              aria-label="編集"
+                            >
+                              <MdEdit size={20} />
+                            </button>
+                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap hidden md:block">
+                              編集
+                            </span>
+                          </div>
+                          <div className="relative group inline-block mr-3">
+                            <button
+                              onClick={() =>
+                                router.push(`/teams/${teamId}/players/new?copyFrom=${player.id}`)
+                              }
+                              className="text-green-600 hover:text-green-800 inline-flex items-center justify-center"
+                              aria-label="コピー"
+                            >
+                              <MdContentCopy size={20} />
+                            </button>
+                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap hidden md:block">
+                              コピー
+                            </span>
+                          </div>
+                          <div className="relative group inline-block">
+                            <button
+                              onClick={() => handleDeletePlayer(player.id, player.name)}
+                              className="text-red-600 hover:text-red-800 inline-flex items-center justify-center"
+                              aria-label="削除"
+                            >
+                              <MdDelete size={20} />
+                            </button>
+                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap hidden md:block">
+                              削除
+                            </span>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -281,15 +296,20 @@ export default function TeamDetailPage() {
                           -
                         </td>
                         <td className="px-4 py-3 text-sm text-center">
-                          <button
-                            onClick={() =>
-                              router.push(`/teams/${teamId}/players/new?battingOrder=${order}`)
-                            }
-                            className="text-blue-600 hover:text-blue-800 inline-flex items-center justify-center"
-                            aria-label="追加"
-                          >
-                            <MdAdd size={20} />
-                          </button>
+                          <div className="relative group inline-block">
+                            <button
+                              onClick={() =>
+                                router.push(`/teams/${teamId}/players/new?battingOrder=${order}`)
+                              }
+                              className="text-blue-600 hover:text-blue-800 inline-flex items-center justify-center"
+                              aria-label="追加"
+                            >
+                              <MdAdd size={20} />
+                            </button>
+                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap hidden md:block">
+                              追加
+                            </span>
+                          </div>
                         </td>
                       </tr>
                     );
