@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import TeamCard from "@/components/teams/TeamCard";
-import LoadingScreen from "@/components/ui/LoadingScreen";
 import EmptyState from "@/components/ui/EmptyState";
+import { TeamsListSkeleton } from "@/components/ui/Skeleton";
 import type { Team } from "@/types";
 
 export default function TeamsPage() {
@@ -59,7 +59,7 @@ export default function TeamsPage() {
   };
 
   if (isLoading) {
-    return <LoadingScreen />;
+    return <TeamsListSkeleton />;
   }
 
   return (

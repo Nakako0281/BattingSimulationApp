@@ -6,6 +6,7 @@ import Link from "next/link";
 import { MdEdit, MdDelete, MdContentCopy, MdContentPaste, MdClose } from "react-icons/md";
 import type { TeamWithPlayers, Player } from "@/types";
 import { calculatePlayerStats, calculateTeamStats, formatBattingAverage, formatPercentage, formatOPS } from "@/lib/utils/stats";
+import { TeamDetailSkeleton } from "@/components/ui/Skeleton";
 
 export default function TeamDetailPage() {
   const params = useParams();
@@ -231,11 +232,7 @@ export default function TeamDetailPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">読み込み中...</div>
-      </div>
-    );
+    return <TeamDetailSkeleton />;
   }
 
   if (error || !team) {
