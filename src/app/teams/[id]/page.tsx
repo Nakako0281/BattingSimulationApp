@@ -360,6 +360,7 @@ export default function TeamDetailPage() {
                 <col className="w-20" /> {/* 本塁打 */}
                 <col className="w-20" /> {/* 四球 */}
                 <col className="w-20" /> {/* 打率 */}
+                <col className="w-20" /> {/* OPS */}
                 <col className="w-28" /> {/* 操作 */}
               </colgroup>
               <thead className="bg-gray-50 border-b border-gray-200">
@@ -373,6 +374,7 @@ export default function TeamDetailPage() {
                   <th className="px-2 py-3 text-right text-sm font-medium text-gray-900">本塁打</th>
                   <th className="px-2 py-3 text-right text-sm font-medium text-gray-900">四球</th>
                   <th className="px-2 py-3 text-right text-sm font-medium text-gray-900">打率</th>
+                  <th className="px-2 py-3 text-right text-sm font-medium text-gray-900">OPS</th>
                   <th className="px-2 py-3 text-center text-sm font-medium text-gray-900">操作</th>
                 </tr>
               </thead>
@@ -459,6 +461,9 @@ export default function TeamDetailPage() {
                           ) : (
                             formatBattingAverage(stats.batting_average)
                           )}
+                        </td>
+                        <td className="px-2 py-2 text-sm text-gray-900 text-right font-medium">
+                          {formatOPS(stats.ops)}
                         </td>
                         <td className="px-2 py-2 text-sm text-center">
                           <div className="flex items-center justify-center gap-2">
