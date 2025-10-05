@@ -11,6 +11,7 @@ interface PlayerFormProps {
   existingBattingOrders?: number[];
   initialData?: Player;
   initialBattingOrder?: number;
+  existingPlayers?: Player[]; // 上書き確認用
 }
 
 export default function PlayerForm({
@@ -20,6 +21,7 @@ export default function PlayerForm({
   existingBattingOrders = [],
   initialData,
   initialBattingOrder,
+  existingPlayers = [],
 }: PlayerFormProps) {
   const router = useRouter();
 
@@ -42,6 +44,10 @@ export default function PlayerForm({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [validationWarnings, setValidationWarnings] = useState<string[]>([]);
+  const [overwriteConfirm, setOverwriteConfirm] = useState<{
+    show: boolean;
+    existingPlayer?: Player;
+  }>({ show: false });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -87,14 +93,35 @@ export default function PlayerForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setIsLoading(true);
 
     // バリデーションチェック
     if (!validateStats()) {
       setError("入力データに誤りがあります");
-      setIsLoading(false);
       return;
     }
+
+    // 新規作成時: 選択された打順に既存選手がいるかチェック
+    if (mode === "create") {
+      const existingPlayer = existingPlayers.find(
+        (p) => p.batting_order === formData.batting_order
+      );
+
+      if (existingPlayer) {
+        // 上書き確認モーダルを表示
+        setOverwriteConfirm({
+          show: true,
+          existingPlayer: existingPlayer,
+        });
+        return;
+      }
+    }
+
+    // 通常の登録/更新処理
+    await submitForm();
+  };
+
+  const submitForm = async () => {
+    setIsLoading(true);
 
     try {
       const url = mode === "create" ? "/api/players" : `/api/players/${player?.id}`;
@@ -130,25 +157,46 @@ export default function PlayerForm({
     }
   };
 
+  const handleOverwrite = async () => {
+    if (!overwriteConfirm.existingPlayer) return;
+
+    setIsLoading(true);
+    setOverwriteConfirm({ show: false });
+
+    try {
+      // 1. 既存選手を削除
+      const deleteResponse = await fetch(
+        `/api/players/${overwriteConfirm.existingPlayer.id}?team_id=${teamId}`,
+        { method: "DELETE" }
+      );
+
+      const deleteResult = await deleteResponse.json();
+
+      if (!deleteResult.success) {
+        setError("既存選手の削除に失敗しました");
+        setIsLoading(false);
+        return;
+      }
+
+      // 2. 新規選手を登録
+      await submitForm();
+    } catch (err) {
+      console.error("Overwrite error:", err);
+      setError("上書き処理に失敗しました");
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancelOverwrite = () => {
+    setOverwriteConfirm({ show: false });
+  };
+
   const handleCancel = () => {
     router.push(`/teams/${teamId}`);
   };
 
-  // 利用可能な打順を計算
-  const availableBattingOrders = Array.from({ length: 9 }, (_, i) => i + 1).filter(
-    (order) =>
-      order === player?.batting_order || !existingBattingOrders.includes(order)
-  );
-
-  // 現在の打順が利用可能な打順に含まれていない場合、最初の利用可能な打順に更新
-  useEffect(() => {
-    if (availableBattingOrders.length > 0 && !availableBattingOrders.includes(formData.batting_order)) {
-      setFormData((prev) => ({
-        ...prev,
-        batting_order: availableBattingOrders[0],
-      }));
-    }
-  }, [availableBattingOrders, formData.batting_order]);
+  // すべての打順を選択可能に（1～9番）
+  const availableBattingOrders = Array.from({ length: 9 }, (_, i) => i + 1);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-4xl">
@@ -339,6 +387,39 @@ export default function PlayerForm({
           キャンセル
         </button>
       </div>
+
+      {/* 上書き確認モーダル */}
+      {overwriteConfirm.show && overwriteConfirm.existingPlayer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md mx-4">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
+              選手の上書き確認
+            </h3>
+            <p className="text-gray-700 mb-6">
+              打順{overwriteConfirm.existingPlayer.batting_order}番には既に「
+              {overwriteConfirm.existingPlayer.name}」が登録されています。
+              <br />
+              上書きしますか？
+            </p>
+            <div className="flex gap-4">
+              <button
+                onClick={handleCancelOverwrite}
+                disabled={isLoading}
+                className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition disabled:opacity-50 font-medium"
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={handleOverwrite}
+                disabled={isLoading}
+                className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition disabled:opacity-50 font-medium"
+              >
+                {isLoading ? "処理中..." : "上書きする"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 }

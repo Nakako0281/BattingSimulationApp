@@ -113,6 +113,7 @@ export default function NewPlayerPage() {
             existingBattingOrders={existingBattingOrders}
             initialData={copyFromPlayer || undefined}
             initialBattingOrder={initialBattingOrder}
+            existingPlayers={team.players}
           />
         </div>
       </div>

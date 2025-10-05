@@ -91,6 +91,7 @@ export default function EditPlayerPage() {
             player={player}
             mode="edit"
             existingBattingOrders={existingBattingOrders}
+            existingPlayers={team.players}
           />
         </div>
       </div>
